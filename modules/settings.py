@@ -24,8 +24,8 @@ LLM_PROVIDERS_FILE = os.path.join(CONFIG_FOLDER, "llm_providers.json")
 THEMES_CONFIG_FILE = os.path.join(CONFIG_FOLDER, "themes.json")
 
 # Файлы авторизации
-CREDENTIALS_FILE = os.path.join(CONFIG_FOLDER, "credentials.json")
-TOKEN_FILE = os.path.join(CONFIG_FOLDER, "token.json")
+CLIENT_SECRET_FILE = os.path.join(CONFIG_FOLDER, "client_secret.json")
+USER_TOKEN_FILE = os.path.join(CONFIG_FOLDER, "user_token.json")
 
 # Ссылки
 GUIDE_URL = "https://docs.google.com/document/d/1xCy8bnTMZTShal60hxKWTWmXCnN5OAB46gd9Ad0kowg/edit?usp=sharing"

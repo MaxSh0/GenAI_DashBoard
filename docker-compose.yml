@@ -1,20 +1,18 @@
 version: '3.8'
-
 services:
   app:
-    container_name: genAI-dashboard
     build: .
+    container_name: genai_dashboard
     ports:
       - "8501:8501"
     volumes:
-      - ./data:/app/data
       - ./config:/app/config
-      - ./charts:/app/charts
+      - ./data:/app/data
+      - ./app.py:/app/app.py
+      - ./modules:/app/modules
       - ./handlers:/app/handlers
+      - ./charts:/app/charts
+      - ./data_sources:/app/data_sources
 
-      - ./client_secret.json:/app/client_secret.json
-      
-      # --- Сохранение сессии ---
-      - ./user_token.json:/app/user_token.json
-      
-    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1

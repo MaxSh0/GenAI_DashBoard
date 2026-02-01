@@ -5,9 +5,12 @@ from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 
-# Файлы
-CLIENT_SECRETS_FILE = "client_secret.json"
-USER_TOKEN_FILE = "user_token.json"  # <-- Файл для хранения вашей сессии
+# --- ИЗМЕНЕНИЕ 1: Импортируем правильные пути из settings ---
+from modules.settings import CLIENT_SECRET_FILE, USER_TOKEN_FILE
+
+# --- ИЗМЕНЕНИЕ 2: Удаляем старые определения (они теперь в settings) ---
+# CLIENT_SECRETS_FILE = "client_secret.json"  <-- УДАЛЕНО
+# USER_TOKEN_FILE = "user_token.json"         <-- УДАЛЕНО
 
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
@@ -16,10 +19,11 @@ SCOPES = [
 REDIRECT_URI = "http://localhost:8501"
 
 def get_flow():
-    if not os.path.exists(CLIENT_SECRETS_FILE):
+    # --- ИЗМЕНЕНИЕ 3: Используем CLIENT_SECRET_FILE (из settings) ---
+    if not os.path.exists(CLIENT_SECRET_FILE):
         return None
     return Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=SCOPES, redirect_uri=REDIRECT_URI
+        CLIENT_SECRET_FILE, scopes=SCOPES, redirect_uri=REDIRECT_URI
     )
 
 def is_authenticated():
@@ -40,6 +44,7 @@ def is_authenticated():
                 pass
 
     # 2. Если нет в памяти, ищем файл на диске ("Запомнить меня")
+    # Используем переменную из settings.py
     if os.path.exists(USER_TOKEN_FILE):
         try:
             creds = Credentials.from_authorized_user_file(USER_TOKEN_FILE, SCOPES)
@@ -54,14 +59,17 @@ def is_authenticated():
                 st.session_state.google_creds = creds
                 return True
         except Exception as e:
-            # Если файл битый — удаляем его
+            # Если файл битый — "удаляем" его (очищаем)
             if os.path.exists(USER_TOKEN_FILE):
-                os.remove(USER_TOKEN_FILE)
+                with open(USER_TOKEN_FILE, 'w') as f:
+                    f.write("{}")
+
             
     return False
 
 def save_token_to_disk(creds):
     """Сохраняет токен в файл (Запомнить меня)."""
+    # Используем переменную из settings.py
     with open(USER_TOKEN_FILE, 'w') as token:
         token.write(creds.to_json())
 
@@ -70,8 +78,10 @@ def logout_user():
     if 'google_creds' in st.session_state:
         del st.session_state.google_creds
     
+    # Используем переменную из settings.py
     if os.path.exists(USER_TOKEN_FILE):
-        os.remove(USER_TOKEN_FILE)
+        with open(USER_TOKEN_FILE, 'w') as f:
+            f.write("{}")
         
     st.query_params.clear()
     st.rerun()
@@ -123,12 +133,12 @@ def setup_google_auth_dialog():
         1. Перейдите в **APIs & Services** -> **OAuth consent screen** (или Audience).
         2. Найдите раздел **Test users**.
         3. Нажмите кнопку **+ ADD USERS**.
-        4. Введите свой email (например: `m.shakurov99@gmail.com`).
+        4. Введите свой email.
         5. Нажмите **SAVE**.
         """)
 
     with t4:
-        st.info("Вставьте содержимое скачанного в Шаге 1 файла JSON:")
+        st.info(f"Вставьте содержимое JSON. Файл будет сохранен как: `{CLIENT_SECRET_FILE}`")
         json_content = st.text_area("client_secret.json", height=200, placeholder='{"web":{"client_id":"...","project_id":"..."}}')
         
         if st.button("💾 Сохранить и перезапустить", type="primary"):
@@ -142,7 +152,8 @@ def setup_google_auth_dialog():
                     st.error("Неверный формат JSON (нет ключа 'web')")
                     return
                     
-                with open(CLIENT_SECRETS_FILE, "w") as f:
+                # Используем переменную из settings.py
+                with open(CLIENT_SECRET_FILE, "w") as f:
                     f.write(json_content)
                     
                 st.success("Отлично! Перезагружаемся...")
@@ -151,8 +162,8 @@ def setup_google_auth_dialog():
                 st.error("Это не валидный JSON.")
 
 def login_redirect():
-    # 1. Если файла настроек нет вообще
-    if not os.path.exists(CLIENT_SECRETS_FILE):
+    # 1. Если файла настроек нет вообще (проверяем по пути из settings)
+    if not os.path.exists(CLIENT_SECRET_FILE):
         if st.button("⚙️ Настроить Google", use_container_width=True): 
             setup_google_auth_dialog()
         return
@@ -180,10 +191,8 @@ def login_redirect():
             </a>
         ''', unsafe_allow_html=True)
         
-        # --- КНОПКА ПОМОЩИ (ВЕРНУЛ) ---
         if st.button("❓ Инструкция / Ошибки", type="secondary", use_container_width=True):
              setup_google_auth_dialog()
-        # ------------------------------
         
     except Exception:
         st.error("Ошибка чтения настроек")

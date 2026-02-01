@@ -21,14 +21,11 @@ from modules.auth import is_authenticated, logout_user, login_redirect, check_au
 
 # --- INIT ---
 titles_conf_init = load_json(TITLES_CONFIG_FILE, {})
-# Ищем ключ "app_title", если нет — берем дефолт
 APP_TITLE = titles_conf_init.get("app_title", "B2B Отчетность")
 
 # --- 2. INIT ---
 st.set_page_config(page_title=APP_TITLE, layout="wide")
 init_project_structure()
-
-# ... (Проверка Auth и Helper functions остаются без изменений) ...
 
 # ==================== SIDEBAR ====================
 with st.sidebar:
@@ -133,7 +130,7 @@ with st.sidebar:
             st.success("Google: ✅ OK")
             
             # Проверка: если токен лежит на диске - пугаем пользователя
-            if os.path.exists("user_token.json"):
+            if os.path.exists(USER_TOKEN_FILE):
                 st.warning("Ваш личный токен сохранен в файле `user_token.json`.", icon="⚠️")
                 st.caption("🔴 **НИКОГДА НЕ ПЕРЕДАВАЙТЕ ЭТОТ ФАЙЛ НИКОМУ!** Он дает полный доступ к вашим таблицам.")
             
