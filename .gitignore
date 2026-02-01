@@ -24,9 +24,13 @@ profile_default/
 ipython_config.py
 
 handlers/*
+!handlers/.gitkeep
 config/*
+!config/.gitkeep
 charts/*
+!charts/.gitkeep
 data_sources/*
+!data_sources/.gitkeep
 data/*
 !data/.gitkeep
 !data/example_data.csv 
