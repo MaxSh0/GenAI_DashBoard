@@ -1,0 +1,17 @@
+{
+    "example_model_metrics.py": [
+        "model_metrics.csv"
+    ],
+    "example_token_usage_logs.py": [
+        "EXAMPLE_llm_latency_monitoring.csv"
+    ],
+    "example_sentiment_classification_logs.py": [
+        "EXAMPLE_sentiment_classification_logs.csv"
+    ],
+    "example_support_embeddings_2d.py": [
+        "EXAMPLE_support_embeddings_2d.csv"
+    ],
+    "example_global_user_messages.py": [
+        "EXAMPLE_global_user_messages.csv"
+    ]
+}

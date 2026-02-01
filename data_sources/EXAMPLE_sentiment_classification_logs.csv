@@ -1,0 +1,3001 @@
+Review_ID,True_Label,Predicted_Label,Source
+REV-00000,Neutral,Neutral,Website
+REV-00001,Positive,Positive,Website
+REV-00002,Positive,Positive,Website
+REV-00003,Positive,Positive,Website
+REV-00004,Negative,Negative,Website
+REV-00005,Negative,Negative,Website
+REV-00006,Negative,Neutral,Mobile App
+REV-00007,Positive,Negative,Mobile App
+REV-00008,Positive,Positive,Website
+REV-00009,Positive,Neutral,Website
+REV-00010,Negative,Negative,Website
+REV-00011,Positive,Positive,Website
+REV-00012,Positive,Positive,Mobile App
+REV-00013,Negative,Negative,Mobile App
+REV-00014,Negative,Negative,Website
+REV-00015,Negative,Negative,Mobile App
+REV-00016,Neutral,Neutral,Mobile App
+REV-00017,Positive,Positive,Website
+REV-00018,Neutral,Negative,Website
+REV-00019,Negative,Negative,Website
+REV-00020,Positive,Positive,Website
+REV-00021,Negative,Negative,Mobile App
+REV-00022,Negative,Negative,Website
+REV-00023,Neutral,Neutral,Mobile App
+REV-00024,Neutral,Negative,Website
+REV-00025,Positive,Positive,Mobile App
+REV-00026,Negative,Neutral,Website
+REV-00027,Positive,Positive,Website
+REV-00028,Positive,Positive,Mobile App
+REV-00029,Negative,Negative,Mobile App
+REV-00030,Positive,Positive,Mobile App
+REV-00031,Negative,Negative,Website
+REV-00032,Negative,Negative,Mobile App
+REV-00033,Positive,Positive,Mobile App
+REV-00034,Positive,Positive,Mobile App
+REV-00035,Positive,Positive,Mobile App
+REV-00036,Neutral,Neutral,Mobile App
+REV-00037,Negative,Positive,Mobile App
+REV-00038,Positive,Neutral,Mobile App
+REV-00039,Neutral,Neutral,Mobile App
+REV-00040,Negative,Negative,Mobile App
+REV-00041,Neutral,Positive,Website
+REV-00042,Negative,Negative,Website
+REV-00043,Positive,Positive,Mobile App
+REV-00044,Negative,Negative,Website
+REV-00045,Positive,Positive,Website
+REV-00046,Neutral,Neutral,Mobile App
+REV-00047,Positive,Positive,Mobile App
+REV-00048,Positive,Positive,Mobile App
+REV-00049,Negative,Negative,Mobile App
+REV-00050,Positive,Positive,Mobile App
+REV-00051,Positive,Positive,Mobile App
+REV-00052,Positive,Positive,Website
+REV-00053,Positive,Positive,Mobile App
+REV-00054,Positive,Positive,Website
+REV-00055,Positive,Positive,Mobile App
+REV-00056,Negative,Negative,Mobile App
+REV-00057,Negative,Negative,Website
+REV-00058,Negative,Negative,Mobile App
+REV-00059,Neutral,Positive,Mobile App
+REV-00060,Neutral,Neutral,Website
+REV-00061,Negative,Negative,Mobile App
+REV-00062,Positive,Positive,Website
+REV-00063,Neutral,Neutral,Mobile App
+REV-00064,Negative,Negative,Mobile App
+REV-00065,Positive,Positive,Website
+REV-00066,Negative,Negative,Mobile App
+REV-00067,Positive,Positive,Website
+REV-00068,Negative,Negative,Website
+REV-00069,Positive,Positive,Website
+REV-00070,Positive,Positive,Mobile App
+REV-00071,Negative,Negative,Mobile App
+REV-00072,Negative,Negative,Website
+REV-00073,Positive,Positive,Mobile App
+REV-00074,Positive,Positive,Mobile App
+REV-00075,Positive,Positive,Mobile App
+REV-00076,Positive,Positive,Website
+REV-00077,Negative,Negative,Mobile App
+REV-00078,Neutral,Neutral,Website
+REV-00079,Negative,Neutral,Mobile App
+REV-00080,Positive,Positive,Mobile App
+REV-00081,Positive,Positive,Website
+REV-00082,Neutral,Neutral,Mobile App
+REV-00083,Negative,Negative,Website
+REV-00084,Neutral,Neutral,Mobile App
+REV-00085,Neutral,Neutral,Website
+REV-00086,Positive,Positive,Mobile App
+REV-00087,Positive,Negative,Mobile App
+REV-00088,Positive,Positive,Mobile App
+REV-00089,Neutral,Neutral,Website
+REV-00090,Negative,Negative,Website
+REV-00091,Positive,Positive,Website
+REV-00092,Positive,Positive,Mobile App
+REV-00093,Positive,Positive,Website
+REV-00094,Positive,Positive,Website
+REV-00095,Neutral,Neutral,Website
+REV-00096,Positive,Positive,Website
+REV-00097,Neutral,Negative,Website
+REV-00098,Negative,Negative,Website
+REV-00099,Negative,Negative,Website
+REV-00100,Negative,Negative,Website
+REV-00101,Positive,Positive,Website
+REV-00102,Neutral,Positive,Website
+REV-00103,Positive,Positive,Mobile App
+REV-00104,Positive,Positive,Mobile App
+REV-00105,Negative,Negative,Website
+REV-00106,Neutral,Neutral,Mobile App
+REV-00107,Positive,Negative,Mobile App
+REV-00108,Negative,Negative,Website
+REV-00109,Negative,Negative,Website
+REV-00110,Negative,Negative,Website
+REV-00111,Negative,Negative,Mobile App
+REV-00112,Positive,Positive,Website
+REV-00113,Positive,Neutral,Mobile App
+REV-00114,Positive,Positive,Website
+REV-00115,Positive,Positive,Mobile App
+REV-00116,Positive,Positive,Mobile App
+REV-00117,Negative,Negative,Website
+REV-00118,Positive,Positive,Website
+REV-00119,Positive,Positive,Mobile App
+REV-00120,Positive,Positive,Mobile App
+REV-00121,Positive,Positive,Website
+REV-00122,Neutral,Negative,Website
+REV-00123,Negative,Negative,Mobile App
+REV-00124,Negative,Negative,Website
+REV-00125,Neutral,Neutral,Mobile App
+REV-00126,Positive,Positive,Website
+REV-00127,Positive,Neutral,Website
+REV-00128,Negative,Neutral,Website
+REV-00129,Positive,Positive,Mobile App
+REV-00130,Neutral,Neutral,Website
+REV-00131,Negative,Negative,Mobile App
+REV-00132,Negative,Neutral,Website
+REV-00133,Neutral,Neutral,Mobile App
+REV-00134,Positive,Positive,Mobile App
+REV-00135,Neutral,Neutral,Website
+REV-00136,Positive,Positive,Mobile App
+REV-00137,Positive,Positive,Mobile App
+REV-00138,Neutral,Neutral,Mobile App
+REV-00139,Positive,Neutral,Mobile App
+REV-00140,Positive,Positive,Website
+REV-00141,Negative,Neutral,Website
+REV-00142,Neutral,Neutral,Website
+REV-00143,Neutral,Neutral,Mobile App
+REV-00144,Negative,Negative,Mobile App
+REV-00145,Negative,Negative,Website
+REV-00146,Positive,Positive,Website
+REV-00147,Positive,Positive,Mobile App
+REV-00148,Negative,Negative,Website
+REV-00149,Negative,Negative,Website
+REV-00150,Positive,Positive,Mobile App
+REV-00151,Negative,Negative,Website
+REV-00152,Negative,Negative,Mobile App
+REV-00153,Neutral,Neutral,Website
+REV-00154,Positive,Positive,Mobile App
+REV-00155,Negative,Negative,Mobile App
+REV-00156,Positive,Positive,Mobile App
+REV-00157,Positive,Neutral,Mobile App
+REV-00158,Negative,Negative,Mobile App
+REV-00159,Positive,Positive,Website
+REV-00160,Neutral,Neutral,Website
+REV-00161,Positive,Neutral,Website
+REV-00162,Positive,Positive,Mobile App
+REV-00163,Positive,Positive,Website
+REV-00164,Negative,Negative,Mobile App
+REV-00165,Positive,Positive,Mobile App
+REV-00166,Neutral,Positive,Website
+REV-00167,Negative,Negative,Mobile App
+REV-00168,Negative,Negative,Website
+REV-00169,Positive,Positive,Mobile App
+REV-00170,Positive,Positive,Mobile App
+REV-00171,Negative,Negative,Website
+REV-00172,Positive,Positive,Mobile App
+REV-00173,Negative,Negative,Website
+REV-00174,Positive,Neutral,Mobile App
+REV-00175,Negative,Negative,Website
+REV-00176,Positive,Positive,Mobile App
+REV-00177,Neutral,Positive,Website
+REV-00178,Positive,Positive,Website
+REV-00179,Negative,Negative,Mobile App
+REV-00180,Neutral,Negative,Website
+REV-00181,Negative,Negative,Mobile App
+REV-00182,Positive,Positive,Mobile App
+REV-00183,Positive,Positive,Website
+REV-00184,Negative,Negative,Website
+REV-00185,Positive,Positive,Website
+REV-00186,Positive,Positive,Website
+REV-00187,Positive,Positive,Website
+REV-00188,Positive,Positive,Mobile App
+REV-00189,Negative,Negative,Website
+REV-00190,Negative,Negative,Mobile App
+REV-00191,Positive,Positive,Website
+REV-00192,Positive,Positive,Website
+REV-00193,Positive,Positive,Website
+REV-00194,Neutral,Neutral,Mobile App
+REV-00195,Neutral,Neutral,Website
+REV-00196,Positive,Positive,Mobile App
+REV-00197,Positive,Positive,Mobile App
+REV-00198,Positive,Positive,Mobile App
+REV-00199,Positive,Positive,Website
+REV-00200,Positive,Positive,Mobile App
+REV-00201,Negative,Negative,Website
+REV-00202,Negative,Negative,Mobile App
+REV-00203,Positive,Positive,Website
+REV-00204,Positive,Positive,Mobile App
+REV-00205,Negative,Negative,Website
+REV-00206,Negative,Neutral,Website
+REV-00207,Positive,Positive,Website
+REV-00208,Negative,Negative,Mobile App
+REV-00209,Negative,Negative,Mobile App
+REV-00210,Positive,Positive,Website
+REV-00211,Positive,Positive,Mobile App
+REV-00212,Positive,Positive,Mobile App
+REV-00213,Negative,Negative,Mobile App
+REV-00214,Positive,Positive,Mobile App
+REV-00215,Negative,Negative,Mobile App
+REV-00216,Neutral,Neutral,Mobile App
+REV-00217,Positive,Negative,Mobile App
+REV-00218,Positive,Positive,Website
+REV-00219,Positive,Positive,Website
+REV-00220,Positive,Positive,Mobile App
+REV-00221,Positive,Positive,Website
+REV-00222,Negative,Negative,Website
+REV-00223,Neutral,Negative,Website
+REV-00224,Negative,Negative,Mobile App
+REV-00225,Negative,Neutral,Mobile App
+REV-00226,Positive,Positive,Mobile App
+REV-00227,Neutral,Neutral,Mobile App
+REV-00228,Positive,Positive,Mobile App
+REV-00229,Positive,Positive,Website
+REV-00230,Positive,Positive,Mobile App
+REV-00231,Positive,Positive,Website
+REV-00232,Positive,Positive,Mobile App
+REV-00233,Neutral,Negative,Website
+REV-00234,Negative,Negative,Mobile App
+REV-00235,Positive,Positive,Mobile App
+REV-00236,Negative,Negative,Mobile App
+REV-00237,Negative,Neutral,Mobile App
+REV-00238,Positive,Positive,Mobile App
+REV-00239,Negative,Negative,Mobile App
+REV-00240,Positive,Positive,Website
+REV-00241,Positive,Positive,Mobile App
+REV-00242,Positive,Positive,Website
+REV-00243,Neutral,Neutral,Mobile App
+REV-00244,Negative,Negative,Website
+REV-00245,Positive,Positive,Website
+REV-00246,Neutral,Neutral,Website
+REV-00247,Positive,Positive,Website
+REV-00248,Positive,Positive,Website
+REV-00249,Positive,Positive,Website
+REV-00250,Negative,Negative,Mobile App
+REV-00251,Neutral,Negative,Website
+REV-00252,Positive,Positive,Mobile App
+REV-00253,Neutral,Negative,Mobile App
+REV-00254,Negative,Negative,Website
+REV-00255,Positive,Positive,Website
+REV-00256,Positive,Positive,Mobile App
+REV-00257,Positive,Positive,Website
+REV-00258,Positive,Positive,Website
+REV-00259,Negative,Neutral,Website
+REV-00260,Positive,Positive,Website
+REV-00261,Positive,Positive,Website
+REV-00262,Negative,Negative,Website
+REV-00263,Positive,Negative,Website
+REV-00264,Positive,Positive,Mobile App
+REV-00265,Positive,Neutral,Website
+REV-00266,Positive,Positive,Mobile App
+REV-00267,Positive,Positive,Mobile App
+REV-00268,Neutral,Neutral,Mobile App
+REV-00269,Negative,Negative,Mobile App
+REV-00270,Positive,Positive,Website
+REV-00271,Positive,Negative,Mobile App
+REV-00272,Positive,Positive,Mobile App
+REV-00273,Positive,Positive,Mobile App
+REV-00274,Positive,Positive,Mobile App
+REV-00275,Positive,Positive,Mobile App
+REV-00276,Positive,Positive,Website
+REV-00277,Positive,Positive,Website
+REV-00278,Positive,Positive,Mobile App
+REV-00279,Positive,Positive,Website
+REV-00280,Positive,Positive,Website
+REV-00281,Neutral,Neutral,Mobile App
+REV-00282,Neutral,Positive,Mobile App
+REV-00283,Negative,Neutral,Mobile App
+REV-00284,Positive,Positive,Website
+REV-00285,Negative,Negative,Mobile App
+REV-00286,Neutral,Neutral,Website
+REV-00287,Positive,Positive,Website
+REV-00288,Negative,Neutral,Website
+REV-00289,Positive,Positive,Mobile App
+REV-00290,Negative,Negative,Website
+REV-00291,Negative,Neutral,Mobile App
+REV-00292,Positive,Positive,Mobile App
+REV-00293,Neutral,Neutral,Mobile App
+REV-00294,Negative,Neutral,Mobile App
+REV-00295,Positive,Neutral,Mobile App
+REV-00296,Positive,Positive,Website
+REV-00297,Negative,Negative,Website
+REV-00298,Positive,Positive,Website
+REV-00299,Negative,Negative,Website
+REV-00300,Negative,Negative,Website
+REV-00301,Positive,Positive,Mobile App
+REV-00302,Positive,Positive,Mobile App
+REV-00303,Positive,Positive,Website
+REV-00304,Positive,Positive,Website
+REV-00305,Positive,Positive,Website
+REV-00306,Positive,Positive,Mobile App
+REV-00307,Neutral,Negative,Mobile App
+REV-00308,Positive,Positive,Mobile App
+REV-00309,Negative,Negative,Website
+REV-00310,Neutral,Neutral,Website
+REV-00311,Negative,Negative,Website
+REV-00312,Negative,Negative,Website
+REV-00313,Positive,Negative,Mobile App
+REV-00314,Positive,Positive,Website
+REV-00315,Positive,Positive,Website
+REV-00316,Neutral,Neutral,Website
+REV-00317,Negative,Negative,Mobile App
+REV-00318,Negative,Negative,Mobile App
+REV-00319,Negative,Negative,Website
+REV-00320,Positive,Positive,Mobile App
+REV-00321,Positive,Neutral,Mobile App
+REV-00322,Positive,Positive,Mobile App
+REV-00323,Negative,Negative,Mobile App
+REV-00324,Positive,Positive,Mobile App
+REV-00325,Positive,Positive,Website
+REV-00326,Positive,Positive,Website
+REV-00327,Positive,Positive,Website
+REV-00328,Neutral,Negative,Mobile App
+REV-00329,Negative,Negative,Mobile App
+REV-00330,Neutral,Neutral,Mobile App
+REV-00331,Positive,Positive,Mobile App
+REV-00332,Negative,Negative,Website
+REV-00333,Negative,Negative,Website
+REV-00334,Negative,Neutral,Website
+REV-00335,Negative,Negative,Website
+REV-00336,Positive,Positive,Website
+REV-00337,Positive,Positive,Website
+REV-00338,Neutral,Neutral,Mobile App
+REV-00339,Negative,Negative,Mobile App
+REV-00340,Neutral,Positive,Website
+REV-00341,Neutral,Neutral,Mobile App
+REV-00342,Negative,Negative,Website
+REV-00343,Neutral,Neutral,Website
+REV-00344,Neutral,Neutral,Mobile App
+REV-00345,Positive,Positive,Website
+REV-00346,Positive,Positive,Website
+REV-00347,Negative,Negative,Website
+REV-00348,Neutral,Neutral,Mobile App
+REV-00349,Positive,Positive,Mobile App
+REV-00350,Positive,Positive,Mobile App
+REV-00351,Positive,Positive,Mobile App
+REV-00352,Positive,Positive,Website
+REV-00353,Negative,Negative,Mobile App
+REV-00354,Negative,Negative,Mobile App
+REV-00355,Positive,Neutral,Mobile App
+REV-00356,Negative,Negative,Website
+REV-00357,Positive,Positive,Mobile App
+REV-00358,Positive,Positive,Mobile App
+REV-00359,Positive,Positive,Website
+REV-00360,Neutral,Neutral,Website
+REV-00361,Positive,Positive,Website
+REV-00362,Neutral,Neutral,Website
+REV-00363,Positive,Positive,Mobile App
+REV-00364,Positive,Positive,Website
+REV-00365,Neutral,Neutral,Mobile App
+REV-00366,Positive,Positive,Mobile App
+REV-00367,Positive,Positive,Mobile App
+REV-00368,Negative,Negative,Mobile App
+REV-00369,Negative,Negative,Mobile App
+REV-00370,Negative,Negative,Website
+REV-00371,Negative,Negative,Mobile App
+REV-00372,Negative,Negative,Mobile App
+REV-00373,Positive,Positive,Mobile App
+REV-00374,Negative,Negative,Website
+REV-00375,Neutral,Neutral,Mobile App
+REV-00376,Positive,Positive,Mobile App
+REV-00377,Negative,Negative,Website
+REV-00378,Positive,Neutral,Mobile App
+REV-00379,Negative,Negative,Mobile App
+REV-00380,Negative,Negative,Website
+REV-00381,Positive,Positive,Mobile App
+REV-00382,Positive,Neutral,Mobile App
+REV-00383,Positive,Positive,Mobile App
+REV-00384,Positive,Neutral,Mobile App
+REV-00385,Positive,Positive,Mobile App
+REV-00386,Negative,Negative,Website
+REV-00387,Negative,Negative,Website
+REV-00388,Positive,Neutral,Website
+REV-00389,Positive,Positive,Mobile App
+REV-00390,Positive,Positive,Mobile App
+REV-00391,Neutral,Positive,Mobile App
+REV-00392,Neutral,Positive,Website
+REV-00393,Positive,Positive,Mobile App
+REV-00394,Neutral,Positive,Mobile App
+REV-00395,Positive,Positive,Mobile App
+REV-00396,Positive,Positive,Website
+REV-00397,Neutral,Neutral,Website
+REV-00398,Positive,Positive,Mobile App
+REV-00399,Positive,Positive,Mobile App
+REV-00400,Negative,Negative,Mobile App
+REV-00401,Positive,Neutral,Website
+REV-00402,Positive,Positive,Website
+REV-00403,Positive,Positive,Website
+REV-00404,Neutral,Neutral,Mobile App
+REV-00405,Positive,Positive,Website
+REV-00406,Neutral,Positive,Mobile App
+REV-00407,Negative,Positive,Mobile App
+REV-00408,Positive,Positive,Website
+REV-00409,Negative,Negative,Mobile App
+REV-00410,Neutral,Neutral,Website
+REV-00411,Positive,Positive,Mobile App
+REV-00412,Positive,Neutral,Mobile App
+REV-00413,Positive,Positive,Website
+REV-00414,Positive,Positive,Mobile App
+REV-00415,Neutral,Neutral,Mobile App
+REV-00416,Negative,Negative,Mobile App
+REV-00417,Neutral,Neutral,Mobile App
+REV-00418,Positive,Positive,Mobile App
+REV-00419,Positive,Negative,Mobile App
+REV-00420,Positive,Positive,Mobile App
+REV-00421,Positive,Positive,Mobile App
+REV-00422,Negative,Negative,Website
+REV-00423,Neutral,Negative,Website
+REV-00424,Negative,Negative,Mobile App
+REV-00425,Positive,Positive,Mobile App
+REV-00426,Neutral,Neutral,Website
+REV-00427,Positive,Positive,Mobile App
+REV-00428,Neutral,Positive,Website
+REV-00429,Negative,Negative,Website
+REV-00430,Negative,Negative,Website
+REV-00431,Positive,Positive,Mobile App
+REV-00432,Positive,Positive,Mobile App
+REV-00433,Negative,Negative,Mobile App
+REV-00434,Negative,Negative,Website
+REV-00435,Positive,Positive,Website
+REV-00436,Negative,Negative,Website
+REV-00437,Positive,Positive,Mobile App
+REV-00438,Positive,Positive,Website
+REV-00439,Negative,Neutral,Website
+REV-00440,Negative,Negative,Mobile App
+REV-00441,Positive,Positive,Website
+REV-00442,Neutral,Neutral,Website
+REV-00443,Neutral,Positive,Mobile App
+REV-00444,Positive,Positive,Mobile App
+REV-00445,Positive,Positive,Website
+REV-00446,Positive,Positive,Mobile App
+REV-00447,Positive,Positive,Website
+REV-00448,Neutral,Neutral,Mobile App
+REV-00449,Negative,Negative,Website
+REV-00450,Positive,Positive,Mobile App
+REV-00451,Positive,Positive,Website
+REV-00452,Neutral,Neutral,Mobile App
+REV-00453,Positive,Positive,Mobile App
+REV-00454,Negative,Neutral,Mobile App
+REV-00455,Neutral,Neutral,Mobile App
+REV-00456,Negative,Negative,Mobile App
+REV-00457,Neutral,Neutral,Mobile App
+REV-00458,Negative,Negative,Mobile App
+REV-00459,Negative,Negative,Website
+REV-00460,Negative,Negative,Website
+REV-00461,Positive,Positive,Mobile App
+REV-00462,Positive,Positive,Mobile App
+REV-00463,Positive,Positive,Website
+REV-00464,Positive,Positive,Website
+REV-00465,Neutral,Neutral,Mobile App
+REV-00466,Negative,Negative,Website
+REV-00467,Positive,Positive,Website
+REV-00468,Negative,Negative,Mobile App
+REV-00469,Positive,Positive,Mobile App
+REV-00470,Negative,Negative,Mobile App
+REV-00471,Positive,Positive,Website
+REV-00472,Negative,Negative,Mobile App
+REV-00473,Positive,Positive,Mobile App
+REV-00474,Positive,Positive,Website
+REV-00475,Positive,Positive,Mobile App
+REV-00476,Negative,Neutral,Website
+REV-00477,Positive,Positive,Website
+REV-00478,Positive,Positive,Website
+REV-00479,Positive,Positive,Website
+REV-00480,Positive,Positive,Website
+REV-00481,Positive,Positive,Website
+REV-00482,Neutral,Neutral,Mobile App
+REV-00483,Positive,Positive,Mobile App
+REV-00484,Positive,Positive,Mobile App
+REV-00485,Positive,Positive,Website
+REV-00486,Negative,Negative,Mobile App
+REV-00487,Negative,Negative,Website
+REV-00488,Positive,Neutral,Mobile App
+REV-00489,Positive,Positive,Website
+REV-00490,Neutral,Negative,Mobile App
+REV-00491,Positive,Positive,Website
+REV-00492,Negative,Neutral,Mobile App
+REV-00493,Negative,Neutral,Website
+REV-00494,Neutral,Neutral,Mobile App
+REV-00495,Neutral,Neutral,Website
+REV-00496,Positive,Positive,Mobile App
+REV-00497,Negative,Neutral,Mobile App
+REV-00498,Positive,Positive,Mobile App
+REV-00499,Positive,Positive,Website
+REV-00500,Positive,Positive,Website
+REV-00501,Positive,Positive,Website
+REV-00502,Neutral,Positive,Website
+REV-00503,Positive,Neutral,Website
+REV-00504,Positive,Positive,Mobile App
+REV-00505,Negative,Negative,Website
+REV-00506,Positive,Positive,Mobile App
+REV-00507,Positive,Positive,Mobile App
+REV-00508,Positive,Positive,Website
+REV-00509,Positive,Neutral,Mobile App
+REV-00510,Positive,Positive,Website
+REV-00511,Neutral,Negative,Website
+REV-00512,Positive,Positive,Website
+REV-00513,Positive,Positive,Mobile App
+REV-00514,Negative,Neutral,Website
+REV-00515,Negative,Neutral,Website
+REV-00516,Neutral,Negative,Website
+REV-00517,Positive,Positive,Mobile App
+REV-00518,Positive,Neutral,Website
+REV-00519,Negative,Negative,Mobile App
+REV-00520,Positive,Positive,Mobile App
+REV-00521,Neutral,Neutral,Website
+REV-00522,Positive,Positive,Mobile App
+REV-00523,Positive,Positive,Mobile App
+REV-00524,Positive,Positive,Website
+REV-00525,Neutral,Negative,Website
+REV-00526,Neutral,Positive,Website
+REV-00527,Negative,Negative,Mobile App
+REV-00528,Negative,Neutral,Website
+REV-00529,Positive,Positive,Mobile App
+REV-00530,Positive,Positive,Mobile App
+REV-00531,Positive,Positive,Mobile App
+REV-00532,Positive,Positive,Mobile App
+REV-00533,Positive,Positive,Mobile App
+REV-00534,Positive,Positive,Website
+REV-00535,Positive,Positive,Website
+REV-00536,Positive,Positive,Mobile App
+REV-00537,Negative,Negative,Mobile App
+REV-00538,Neutral,Neutral,Website
+REV-00539,Negative,Negative,Website
+REV-00540,Positive,Positive,Mobile App
+REV-00541,Positive,Positive,Mobile App
+REV-00542,Negative,Negative,Website
+REV-00543,Positive,Positive,Website
+REV-00544,Positive,Positive,Mobile App
+REV-00545,Neutral,Neutral,Website
+REV-00546,Negative,Negative,Website
+REV-00547,Positive,Positive,Mobile App
+REV-00548,Positive,Positive,Mobile App
+REV-00549,Positive,Positive,Mobile App
+REV-00550,Positive,Positive,Website
+REV-00551,Positive,Positive,Mobile App
+REV-00552,Positive,Positive,Website
+REV-00553,Positive,Positive,Mobile App
+REV-00554,Positive,Positive,Mobile App
+REV-00555,Neutral,Neutral,Website
+REV-00556,Negative,Negative,Website
+REV-00557,Negative,Negative,Mobile App
+REV-00558,Positive,Neutral,Mobile App
+REV-00559,Positive,Positive,Website
+REV-00560,Positive,Positive,Mobile App
+REV-00561,Negative,Negative,Website
+REV-00562,Negative,Negative,Website
+REV-00563,Negative,Negative,Mobile App
+REV-00564,Neutral,Neutral,Website
+REV-00565,Positive,Positive,Website
+REV-00566,Neutral,Neutral,Website
+REV-00567,Neutral,Neutral,Mobile App
+REV-00568,Positive,Positive,Website
+REV-00569,Neutral,Positive,Mobile App
+REV-00570,Positive,Positive,Mobile App
+REV-00571,Positive,Positive,Mobile App
+REV-00572,Neutral,Neutral,Website
+REV-00573,Positive,Positive,Website
+REV-00574,Positive,Positive,Mobile App
+REV-00575,Positive,Positive,Mobile App
+REV-00576,Negative,Negative,Website
+REV-00577,Positive,Positive,Mobile App
+REV-00578,Neutral,Neutral,Mobile App
+REV-00579,Negative,Negative,Website
+REV-00580,Neutral,Neutral,Mobile App
+REV-00581,Positive,Positive,Website
+REV-00582,Neutral,Neutral,Website
+REV-00583,Neutral,Positive,Mobile App
+REV-00584,Positive,Positive,Website
+REV-00585,Negative,Negative,Website
+REV-00586,Negative,Negative,Website
+REV-00587,Negative,Negative,Mobile App
+REV-00588,Negative,Negative,Mobile App
+REV-00589,Negative,Negative,Mobile App
+REV-00590,Negative,Neutral,Website
+REV-00591,Positive,Positive,Website
+REV-00592,Negative,Negative,Mobile App
+REV-00593,Neutral,Neutral,Mobile App
+REV-00594,Positive,Positive,Website
+REV-00595,Neutral,Neutral,Mobile App
+REV-00596,Positive,Positive,Mobile App
+REV-00597,Negative,Negative,Mobile App
+REV-00598,Negative,Negative,Mobile App
+REV-00599,Negative,Negative,Mobile App
+REV-00600,Negative,Negative,Website
+REV-00601,Negative,Negative,Mobile App
+REV-00602,Negative,Negative,Mobile App
+REV-00603,Negative,Negative,Website
+REV-00604,Negative,Negative,Website
+REV-00605,Neutral,Neutral,Website
+REV-00606,Negative,Negative,Website
+REV-00607,Neutral,Neutral,Mobile App
+REV-00608,Positive,Positive,Mobile App
+REV-00609,Positive,Positive,Mobile App
+REV-00610,Negative,Negative,Mobile App
+REV-00611,Positive,Positive,Website
+REV-00612,Positive,Positive,Website
+REV-00613,Negative,Negative,Mobile App
+REV-00614,Positive,Positive,Mobile App
+REV-00615,Positive,Neutral,Mobile App
+REV-00616,Negative,Negative,Mobile App
+REV-00617,Negative,Negative,Website
+REV-00618,Positive,Positive,Mobile App
+REV-00619,Positive,Positive,Website
+REV-00620,Negative,Negative,Website
+REV-00621,Negative,Negative,Website
+REV-00622,Neutral,Neutral,Website
+REV-00623,Neutral,Positive,Mobile App
+REV-00624,Positive,Positive,Mobile App
+REV-00625,Neutral,Neutral,Mobile App
+REV-00626,Neutral,Negative,Mobile App
+REV-00627,Positive,Positive,Website
+REV-00628,Negative,Negative,Website
+REV-00629,Negative,Negative,Website
+REV-00630,Positive,Positive,Mobile App
+REV-00631,Positive,Positive,Website
+REV-00632,Positive,Positive,Website
+REV-00633,Positive,Positive,Website
+REV-00634,Negative,Negative,Website
+REV-00635,Neutral,Neutral,Mobile App
+REV-00636,Positive,Positive,Website
+REV-00637,Negative,Negative,Website
+REV-00638,Negative,Negative,Mobile App
+REV-00639,Neutral,Neutral,Mobile App
+REV-00640,Negative,Negative,Mobile App
+REV-00641,Neutral,Positive,Website
+REV-00642,Negative,Negative,Website
+REV-00643,Neutral,Neutral,Website
+REV-00644,Negative,Negative,Website
+REV-00645,Positive,Positive,Mobile App
+REV-00646,Positive,Positive,Website
+REV-00647,Positive,Positive,Website
+REV-00648,Positive,Positive,Mobile App
+REV-00649,Neutral,Positive,Mobile App
+REV-00650,Negative,Negative,Mobile App
+REV-00651,Positive,Positive,Website
+REV-00652,Positive,Positive,Website
+REV-00653,Positive,Positive,Website
+REV-00654,Neutral,Negative,Website
+REV-00655,Negative,Negative,Website
+REV-00656,Negative,Negative,Mobile App
+REV-00657,Neutral,Neutral,Mobile App
+REV-00658,Positive,Positive,Website
+REV-00659,Positive,Positive,Website
+REV-00660,Neutral,Neutral,Website
+REV-00661,Positive,Positive,Website
+REV-00662,Positive,Neutral,Website
+REV-00663,Negative,Negative,Mobile App
+REV-00664,Negative,Negative,Mobile App
+REV-00665,Negative,Negative,Mobile App
+REV-00666,Negative,Negative,Website
+REV-00667,Negative,Negative,Website
+REV-00668,Negative,Negative,Mobile App
+REV-00669,Negative,Negative,Mobile App
+REV-00670,Negative,Negative,Website
+REV-00671,Positive,Neutral,Mobile App
+REV-00672,Negative,Negative,Mobile App
+REV-00673,Positive,Positive,Website
+REV-00674,Neutral,Neutral,Mobile App
+REV-00675,Positive,Positive,Mobile App
+REV-00676,Negative,Negative,Mobile App
+REV-00677,Neutral,Neutral,Website
+REV-00678,Positive,Positive,Mobile App
+REV-00679,Positive,Positive,Mobile App
+REV-00680,Positive,Positive,Mobile App
+REV-00681,Negative,Negative,Website
+REV-00682,Negative,Negative,Website
+REV-00683,Positive,Positive,Mobile App
+REV-00684,Positive,Positive,Website
+REV-00685,Positive,Positive,Mobile App
+REV-00686,Positive,Positive,Website
+REV-00687,Negative,Negative,Website
+REV-00688,Positive,Neutral,Mobile App
+REV-00689,Negative,Negative,Mobile App
+REV-00690,Neutral,Neutral,Mobile App
+REV-00691,Neutral,Neutral,Website
+REV-00692,Positive,Positive,Mobile App
+REV-00693,Negative,Negative,Website
+REV-00694,Negative,Negative,Website
+REV-00695,Positive,Neutral,Mobile App
+REV-00696,Negative,Neutral,Website
+REV-00697,Positive,Positive,Mobile App
+REV-00698,Negative,Neutral,Website
+REV-00699,Neutral,Neutral,Mobile App
+REV-00700,Positive,Positive,Website
+REV-00701,Negative,Negative,Website
+REV-00702,Neutral,Neutral,Mobile App
+REV-00703,Negative,Negative,Website
+REV-00704,Negative,Neutral,Mobile App
+REV-00705,Positive,Positive,Website
+REV-00706,Neutral,Neutral,Website
+REV-00707,Positive,Positive,Website
+REV-00708,Negative,Negative,Mobile App
+REV-00709,Positive,Positive,Mobile App
+REV-00710,Positive,Negative,Mobile App
+REV-00711,Positive,Positive,Mobile App
+REV-00712,Neutral,Neutral,Mobile App
+REV-00713,Neutral,Neutral,Website
+REV-00714,Neutral,Positive,Website
+REV-00715,Positive,Positive,Mobile App
+REV-00716,Positive,Positive,Website
+REV-00717,Positive,Neutral,Website
+REV-00718,Negative,Negative,Website
+REV-00719,Positive,Positive,Website
+REV-00720,Positive,Positive,Mobile App
+REV-00721,Negative,Negative,Website
+REV-00722,Negative,Neutral,Mobile App
+REV-00723,Positive,Positive,Mobile App
+REV-00724,Positive,Positive,Website
+REV-00725,Positive,Positive,Mobile App
+REV-00726,Negative,Negative,Website
+REV-00727,Positive,Neutral,Website
+REV-00728,Negative,Negative,Website
+REV-00729,Negative,Negative,Mobile App
+REV-00730,Negative,Negative,Mobile App
+REV-00731,Positive,Positive,Mobile App
+REV-00732,Positive,Positive,Website
+REV-00733,Positive,Positive,Website
+REV-00734,Neutral,Neutral,Website
+REV-00735,Positive,Positive,Mobile App
+REV-00736,Neutral,Neutral,Website
+REV-00737,Positive,Positive,Website
+REV-00738,Neutral,Neutral,Mobile App
+REV-00739,Neutral,Neutral,Mobile App
+REV-00740,Neutral,Positive,Mobile App
+REV-00741,Neutral,Neutral,Website
+REV-00742,Positive,Positive,Website
+REV-00743,Positive,Neutral,Website
+REV-00744,Negative,Negative,Mobile App
+REV-00745,Positive,Positive,Mobile App
+REV-00746,Neutral,Neutral,Mobile App
+REV-00747,Positive,Positive,Mobile App
+REV-00748,Positive,Positive,Website
+REV-00749,Positive,Positive,Website
+REV-00750,Negative,Neutral,Website
+REV-00751,Positive,Positive,Website
+REV-00752,Positive,Positive,Website
+REV-00753,Neutral,Neutral,Website
+REV-00754,Negative,Negative,Website
+REV-00755,Positive,Positive,Website
+REV-00756,Positive,Positive,Mobile App
+REV-00757,Positive,Positive,Mobile App
+REV-00758,Positive,Positive,Website
+REV-00759,Positive,Positive,Mobile App
+REV-00760,Negative,Negative,Website
+REV-00761,Neutral,Neutral,Website
+REV-00762,Negative,Negative,Mobile App
+REV-00763,Positive,Positive,Website
+REV-00764,Negative,Negative,Website
+REV-00765,Positive,Positive,Website
+REV-00766,Positive,Positive,Website
+REV-00767,Positive,Positive,Website
+REV-00768,Neutral,Neutral,Website
+REV-00769,Positive,Positive,Website
+REV-00770,Negative,Negative,Mobile App
+REV-00771,Positive,Positive,Mobile App
+REV-00772,Negative,Negative,Website
+REV-00773,Neutral,Neutral,Mobile App
+REV-00774,Positive,Positive,Website
+REV-00775,Negative,Neutral,Website
+REV-00776,Negative,Negative,Website
+REV-00777,Positive,Positive,Website
+REV-00778,Positive,Positive,Mobile App
+REV-00779,Positive,Positive,Mobile App
+REV-00780,Positive,Positive,Mobile App
+REV-00781,Positive,Positive,Mobile App
+REV-00782,Negative,Negative,Website
+REV-00783,Neutral,Neutral,Mobile App
+REV-00784,Negative,Negative,Website
+REV-00785,Positive,Positive,Website
+REV-00786,Positive,Positive,Mobile App
+REV-00787,Neutral,Neutral,Website
+REV-00788,Neutral,Negative,Mobile App
+REV-00789,Positive,Positive,Mobile App
+REV-00790,Negative,Negative,Mobile App
+REV-00791,Positive,Neutral,Mobile App
+REV-00792,Positive,Positive,Mobile App
+REV-00793,Positive,Positive,Website
+REV-00794,Negative,Negative,Mobile App
+REV-00795,Positive,Positive,Mobile App
+REV-00796,Positive,Positive,Website
+REV-00797,Positive,Positive,Mobile App
+REV-00798,Positive,Positive,Mobile App
+REV-00799,Positive,Positive,Website
+REV-00800,Positive,Positive,Website
+REV-00801,Negative,Neutral,Mobile App
+REV-00802,Positive,Positive,Website
+REV-00803,Positive,Positive,Mobile App
+REV-00804,Neutral,Neutral,Website
+REV-00805,Positive,Positive,Mobile App
+REV-00806,Positive,Positive,Mobile App
+REV-00807,Positive,Positive,Mobile App
+REV-00808,Neutral,Negative,Website
+REV-00809,Negative,Negative,Mobile App
+REV-00810,Positive,Positive,Website
+REV-00811,Positive,Positive,Mobile App
+REV-00812,Negative,Negative,Mobile App
+REV-00813,Positive,Positive,Mobile App
+REV-00814,Positive,Positive,Mobile App
+REV-00815,Positive,Positive,Mobile App
+REV-00816,Positive,Positive,Website
+REV-00817,Neutral,Neutral,Website
+REV-00818,Negative,Negative,Website
+REV-00819,Neutral,Neutral,Mobile App
+REV-00820,Positive,Positive,Mobile App
+REV-00821,Negative,Negative,Website
+REV-00822,Neutral,Neutral,Mobile App
+REV-00823,Neutral,Neutral,Mobile App
+REV-00824,Positive,Positive,Mobile App
+REV-00825,Positive,Neutral,Website
+REV-00826,Neutral,Neutral,Website
+REV-00827,Neutral,Neutral,Website
+REV-00828,Positive,Positive,Website
+REV-00829,Neutral,Neutral,Website
+REV-00830,Negative,Negative,Mobile App
+REV-00831,Neutral,Neutral,Mobile App
+REV-00832,Negative,Negative,Mobile App
+REV-00833,Negative,Negative,Mobile App
+REV-00834,Neutral,Neutral,Website
+REV-00835,Neutral,Neutral,Website
+REV-00836,Positive,Positive,Mobile App
+REV-00837,Neutral,Negative,Website
+REV-00838,Positive,Positive,Mobile App
+REV-00839,Positive,Positive,Mobile App
+REV-00840,Negative,Negative,Mobile App
+REV-00841,Positive,Neutral,Mobile App
+REV-00842,Negative,Negative,Website
+REV-00843,Positive,Positive,Mobile App
+REV-00844,Negative,Negative,Website
+REV-00845,Neutral,Neutral,Mobile App
+REV-00846,Negative,Positive,Mobile App
+REV-00847,Positive,Positive,Mobile App
+REV-00848,Positive,Positive,Mobile App
+REV-00849,Positive,Neutral,Website
+REV-00850,Negative,Negative,Mobile App
+REV-00851,Positive,Positive,Website
+REV-00852,Negative,Negative,Mobile App
+REV-00853,Positive,Positive,Mobile App
+REV-00854,Negative,Negative,Mobile App
+REV-00855,Negative,Negative,Website
+REV-00856,Negative,Negative,Mobile App
+REV-00857,Neutral,Neutral,Mobile App
+REV-00858,Positive,Positive,Mobile App
+REV-00859,Negative,Negative,Mobile App
+REV-00860,Positive,Positive,Mobile App
+REV-00861,Neutral,Neutral,Website
+REV-00862,Positive,Positive,Website
+REV-00863,Neutral,Neutral,Mobile App
+REV-00864,Neutral,Negative,Mobile App
+REV-00865,Positive,Positive,Website
+REV-00866,Negative,Negative,Mobile App
+REV-00867,Negative,Negative,Website
+REV-00868,Positive,Positive,Mobile App
+REV-00869,Positive,Neutral,Mobile App
+REV-00870,Neutral,Neutral,Website
+REV-00871,Negative,Negative,Mobile App
+REV-00872,Positive,Positive,Website
+REV-00873,Neutral,Neutral,Website
+REV-00874,Negative,Negative,Website
+REV-00875,Negative,Negative,Mobile App
+REV-00876,Positive,Positive,Website
+REV-00877,Positive,Positive,Website
+REV-00878,Negative,Negative,Mobile App
+REV-00879,Negative,Negative,Mobile App
+REV-00880,Negative,Negative,Mobile App
+REV-00881,Positive,Positive,Mobile App
+REV-00882,Negative,Neutral,Mobile App
+REV-00883,Negative,Negative,Mobile App
+REV-00884,Positive,Positive,Website
+REV-00885,Negative,Neutral,Mobile App
+REV-00886,Positive,Positive,Website
+REV-00887,Negative,Negative,Mobile App
+REV-00888,Negative,Negative,Website
+REV-00889,Negative,Negative,Website
+REV-00890,Positive,Positive,Mobile App
+REV-00891,Positive,Positive,Mobile App
+REV-00892,Positive,Positive,Website
+REV-00893,Neutral,Neutral,Mobile App
+REV-00894,Positive,Positive,Mobile App
+REV-00895,Negative,Negative,Website
+REV-00896,Negative,Negative,Website
+REV-00897,Positive,Positive,Website
+REV-00898,Negative,Negative,Mobile App
+REV-00899,Negative,Negative,Mobile App
+REV-00900,Negative,Negative,Mobile App
+REV-00901,Negative,Negative,Mobile App
+REV-00902,Negative,Neutral,Website
+REV-00903,Positive,Positive,Mobile App
+REV-00904,Neutral,Neutral,Website
+REV-00905,Positive,Positive,Mobile App
+REV-00906,Positive,Positive,Mobile App
+REV-00907,Neutral,Neutral,Website
+REV-00908,Negative,Negative,Mobile App
+REV-00909,Neutral,Neutral,Mobile App
+REV-00910,Positive,Neutral,Website
+REV-00911,Negative,Negative,Mobile App
+REV-00912,Positive,Negative,Website
+REV-00913,Neutral,Positive,Website
+REV-00914,Positive,Positive,Website
+REV-00915,Neutral,Neutral,Website
+REV-00916,Negative,Negative,Mobile App
+REV-00917,Positive,Positive,Mobile App
+REV-00918,Positive,Positive,Mobile App
+REV-00919,Negative,Negative,Website
+REV-00920,Positive,Positive,Mobile App
+REV-00921,Neutral,Neutral,Mobile App
+REV-00922,Positive,Positive,Mobile App
+REV-00923,Positive,Positive,Mobile App
+REV-00924,Neutral,Positive,Website
+REV-00925,Negative,Negative,Website
+REV-00926,Negative,Negative,Mobile App
+REV-00927,Positive,Positive,Website
+REV-00928,Positive,Positive,Mobile App
+REV-00929,Negative,Negative,Mobile App
+REV-00930,Negative,Neutral,Mobile App
+REV-00931,Positive,Positive,Website
+REV-00932,Positive,Positive,Mobile App
+REV-00933,Positive,Positive,Website
+REV-00934,Negative,Negative,Website
+REV-00935,Negative,Negative,Mobile App
+REV-00936,Negative,Negative,Website
+REV-00937,Positive,Positive,Website
+REV-00938,Negative,Negative,Mobile App
+REV-00939,Positive,Positive,Website
+REV-00940,Negative,Negative,Website
+REV-00941,Positive,Positive,Mobile App
+REV-00942,Positive,Neutral,Mobile App
+REV-00943,Positive,Positive,Website
+REV-00944,Negative,Negative,Mobile App
+REV-00945,Negative,Negative,Mobile App
+REV-00946,Negative,Negative,Website
+REV-00947,Positive,Positive,Website
+REV-00948,Positive,Positive,Mobile App
+REV-00949,Positive,Positive,Website
+REV-00950,Positive,Neutral,Mobile App
+REV-00951,Positive,Positive,Mobile App
+REV-00952,Negative,Positive,Website
+REV-00953,Positive,Positive,Website
+REV-00954,Neutral,Neutral,Mobile App
+REV-00955,Neutral,Positive,Mobile App
+REV-00956,Positive,Positive,Mobile App
+REV-00957,Negative,Negative,Mobile App
+REV-00958,Negative,Negative,Website
+REV-00959,Positive,Neutral,Mobile App
+REV-00960,Negative,Negative,Website
+REV-00961,Positive,Positive,Website
+REV-00962,Negative,Negative,Mobile App
+REV-00963,Neutral,Neutral,Website
+REV-00964,Negative,Negative,Website
+REV-00965,Neutral,Neutral,Mobile App
+REV-00966,Positive,Positive,Website
+REV-00967,Negative,Negative,Website
+REV-00968,Positive,Positive,Mobile App
+REV-00969,Neutral,Neutral,Mobile App
+REV-00970,Positive,Positive,Mobile App
+REV-00971,Positive,Positive,Mobile App
+REV-00972,Positive,Positive,Mobile App
+REV-00973,Negative,Negative,Mobile App
+REV-00974,Negative,Negative,Mobile App
+REV-00975,Negative,Neutral,Website
+REV-00976,Positive,Positive,Website
+REV-00977,Negative,Negative,Mobile App
+REV-00978,Neutral,Negative,Website
+REV-00979,Positive,Positive,Website
+REV-00980,Neutral,Neutral,Mobile App
+REV-00981,Positive,Positive,Website
+REV-00982,Negative,Negative,Mobile App
+REV-00983,Negative,Negative,Website
+REV-00984,Positive,Positive,Mobile App
+REV-00985,Neutral,Positive,Website
+REV-00986,Positive,Neutral,Website
+REV-00987,Neutral,Neutral,Website
+REV-00988,Negative,Negative,Mobile App
+REV-00989,Positive,Positive,Website
+REV-00990,Positive,Neutral,Website
+REV-00991,Positive,Positive,Mobile App
+REV-00992,Negative,Negative,Mobile App
+REV-00993,Positive,Neutral,Website
+REV-00994,Neutral,Neutral,Website
+REV-00995,Negative,Negative,Website
+REV-00996,Positive,Positive,Website
+REV-00997,Negative,Negative,Mobile App
+REV-00998,Positive,Positive,Website
+REV-00999,Neutral,Neutral,Website
+REV-01000,Negative,Negative,Mobile App
+REV-01001,Positive,Positive,Website
+REV-01002,Positive,Positive,Website
+REV-01003,Positive,Positive,Website
+REV-01004,Positive,Positive,Mobile App
+REV-01005,Positive,Positive,Mobile App
+REV-01006,Positive,Positive,Website
+REV-01007,Positive,Positive,Website
+REV-01008,Negative,Negative,Mobile App
+REV-01009,Neutral,Negative,Website
+REV-01010,Negative,Negative,Website
+REV-01011,Positive,Positive,Mobile App
+REV-01012,Positive,Positive,Mobile App
+REV-01013,Negative,Negative,Mobile App
+REV-01014,Positive,Positive,Website
+REV-01015,Positive,Positive,Website
+REV-01016,Negative,Neutral,Website
+REV-01017,Positive,Positive,Website
+REV-01018,Positive,Positive,Mobile App
+REV-01019,Negative,Negative,Website
+REV-01020,Positive,Positive,Website
+REV-01021,Negative,Negative,Mobile App
+REV-01022,Positive,Positive,Mobile App
+REV-01023,Positive,Positive,Website
+REV-01024,Positive,Positive,Mobile App
+REV-01025,Neutral,Neutral,Mobile App
+REV-01026,Positive,Positive,Website
+REV-01027,Positive,Positive,Website
+REV-01028,Neutral,Neutral,Website
+REV-01029,Positive,Positive,Website
+REV-01030,Negative,Negative,Mobile App
+REV-01031,Positive,Positive,Mobile App
+REV-01032,Negative,Negative,Website
+REV-01033,Negative,Positive,Website
+REV-01034,Negative,Negative,Mobile App
+REV-01035,Positive,Positive,Website
+REV-01036,Neutral,Positive,Website
+REV-01037,Positive,Positive,Website
+REV-01038,Negative,Negative,Website
+REV-01039,Neutral,Neutral,Mobile App
+REV-01040,Positive,Positive,Website
+REV-01041,Positive,Positive,Mobile App
+REV-01042,Neutral,Neutral,Website
+REV-01043,Positive,Positive,Website
+REV-01044,Positive,Positive,Mobile App
+REV-01045,Positive,Positive,Website
+REV-01046,Negative,Negative,Mobile App
+REV-01047,Negative,Negative,Website
+REV-01048,Positive,Positive,Website
+REV-01049,Negative,Negative,Website
+REV-01050,Positive,Positive,Website
+REV-01051,Positive,Positive,Website
+REV-01052,Positive,Positive,Mobile App
+REV-01053,Positive,Positive,Mobile App
+REV-01054,Positive,Positive,Website
+REV-01055,Neutral,Negative,Website
+REV-01056,Positive,Positive,Mobile App
+REV-01057,Neutral,Negative,Mobile App
+REV-01058,Neutral,Positive,Website
+REV-01059,Positive,Positive,Website
+REV-01060,Positive,Positive,Mobile App
+REV-01061,Positive,Positive,Website
+REV-01062,Positive,Positive,Mobile App
+REV-01063,Neutral,Neutral,Website
+REV-01064,Neutral,Positive,Mobile App
+REV-01065,Positive,Positive,Mobile App
+REV-01066,Negative,Negative,Website
+REV-01067,Negative,Positive,Mobile App
+REV-01068,Neutral,Neutral,Website
+REV-01069,Negative,Negative,Website
+REV-01070,Negative,Negative,Website
+REV-01071,Negative,Negative,Website
+REV-01072,Negative,Negative,Mobile App
+REV-01073,Negative,Negative,Website
+REV-01074,Positive,Positive,Website
+REV-01075,Neutral,Neutral,Website
+REV-01076,Neutral,Neutral,Website
+REV-01077,Positive,Positive,Mobile App
+REV-01078,Negative,Negative,Website
+REV-01079,Positive,Positive,Mobile App
+REV-01080,Positive,Positive,Mobile App
+REV-01081,Negative,Negative,Mobile App
+REV-01082,Neutral,Neutral,Website
+REV-01083,Positive,Positive,Website
+REV-01084,Positive,Positive,Website
+REV-01085,Neutral,Negative,Website
+REV-01086,Positive,Positive,Mobile App
+REV-01087,Negative,Negative,Mobile App
+REV-01088,Positive,Positive,Website
+REV-01089,Negative,Negative,Website
+REV-01090,Positive,Positive,Website
+REV-01091,Positive,Positive,Website
+REV-01092,Positive,Positive,Website
+REV-01093,Positive,Positive,Website
+REV-01094,Negative,Negative,Website
+REV-01095,Negative,Negative,Mobile App
+REV-01096,Negative,Negative,Mobile App
+REV-01097,Negative,Negative,Mobile App
+REV-01098,Positive,Positive,Mobile App
+REV-01099,Neutral,Negative,Website
+REV-01100,Negative,Negative,Website
+REV-01101,Positive,Positive,Website
+REV-01102,Positive,Positive,Website
+REV-01103,Positive,Positive,Website
+REV-01104,Positive,Positive,Mobile App
+REV-01105,Negative,Negative,Website
+REV-01106,Neutral,Positive,Mobile App
+REV-01107,Positive,Neutral,Website
+REV-01108,Positive,Positive,Mobile App
+REV-01109,Negative,Negative,Website
+REV-01110,Positive,Positive,Mobile App
+REV-01111,Negative,Negative,Website
+REV-01112,Negative,Negative,Website
+REV-01113,Positive,Neutral,Website
+REV-01114,Positive,Positive,Website
+REV-01115,Positive,Positive,Mobile App
+REV-01116,Negative,Neutral,Website
+REV-01117,Positive,Positive,Mobile App
+REV-01118,Negative,Negative,Website
+REV-01119,Negative,Negative,Mobile App
+REV-01120,Positive,Positive,Website
+REV-01121,Positive,Positive,Website
+REV-01122,Positive,Positive,Mobile App
+REV-01123,Positive,Positive,Website
+REV-01124,Positive,Positive,Website
+REV-01125,Positive,Positive,Mobile App
+REV-01126,Negative,Negative,Website
+REV-01127,Neutral,Positive,Mobile App
+REV-01128,Neutral,Neutral,Website
+REV-01129,Negative,Negative,Mobile App
+REV-01130,Positive,Positive,Mobile App
+REV-01131,Neutral,Neutral,Mobile App
+REV-01132,Negative,Negative,Mobile App
+REV-01133,Negative,Negative,Website
+REV-01134,Positive,Positive,Website
+REV-01135,Negative,Negative,Mobile App
+REV-01136,Positive,Positive,Website
+REV-01137,Neutral,Neutral,Website
+REV-01138,Neutral,Neutral,Website
+REV-01139,Positive,Positive,Mobile App
+REV-01140,Positive,Positive,Website
+REV-01141,Neutral,Negative,Website
+REV-01142,Positive,Neutral,Mobile App
+REV-01143,Positive,Positive,Website
+REV-01144,Negative,Neutral,Mobile App
+REV-01145,Positive,Positive,Mobile App
+REV-01146,Positive,Positive,Mobile App
+REV-01147,Positive,Positive,Website
+REV-01148,Positive,Positive,Website
+REV-01149,Positive,Positive,Mobile App
+REV-01150,Positive,Positive,Mobile App
+REV-01151,Positive,Negative,Mobile App
+REV-01152,Positive,Positive,Mobile App
+REV-01153,Positive,Positive,Mobile App
+REV-01154,Positive,Positive,Mobile App
+REV-01155,Positive,Negative,Website
+REV-01156,Negative,Negative,Mobile App
+REV-01157,Positive,Positive,Mobile App
+REV-01158,Positive,Positive,Mobile App
+REV-01159,Negative,Negative,Website
+REV-01160,Positive,Positive,Website
+REV-01161,Negative,Negative,Website
+REV-01162,Neutral,Neutral,Website
+REV-01163,Positive,Positive,Mobile App
+REV-01164,Negative,Negative,Website
+REV-01165,Positive,Positive,Mobile App
+REV-01166,Positive,Positive,Mobile App
+REV-01167,Positive,Neutral,Mobile App
+REV-01168,Negative,Negative,Mobile App
+REV-01169,Negative,Negative,Mobile App
+REV-01170,Positive,Positive,Mobile App
+REV-01171,Positive,Positive,Website
+REV-01172,Positive,Positive,Website
+REV-01173,Negative,Negative,Website
+REV-01174,Positive,Positive,Website
+REV-01175,Positive,Positive,Website
+REV-01176,Positive,Positive,Mobile App
+REV-01177,Negative,Negative,Website
+REV-01178,Positive,Positive,Website
+REV-01179,Positive,Positive,Website
+REV-01180,Positive,Positive,Mobile App
+REV-01181,Neutral,Neutral,Mobile App
+REV-01182,Positive,Positive,Mobile App
+REV-01183,Positive,Positive,Website
+REV-01184,Negative,Negative,Website
+REV-01185,Positive,Positive,Website
+REV-01186,Positive,Positive,Website
+REV-01187,Negative,Negative,Website
+REV-01188,Neutral,Neutral,Mobile App
+REV-01189,Positive,Positive,Website
+REV-01190,Negative,Negative,Mobile App
+REV-01191,Positive,Positive,Website
+REV-01192,Neutral,Neutral,Mobile App
+REV-01193,Positive,Positive,Mobile App
+REV-01194,Negative,Negative,Mobile App
+REV-01195,Positive,Positive,Mobile App
+REV-01196,Positive,Neutral,Website
+REV-01197,Positive,Positive,Website
+REV-01198,Positive,Positive,Website
+REV-01199,Negative,Negative,Mobile App
+REV-01200,Positive,Positive,Website
+REV-01201,Negative,Negative,Website
+REV-01202,Negative,Negative,Website
+REV-01203,Neutral,Positive,Website
+REV-01204,Neutral,Negative,Mobile App
+REV-01205,Positive,Positive,Mobile App
+REV-01206,Positive,Positive,Website
+REV-01207,Neutral,Neutral,Website
+REV-01208,Negative,Negative,Website
+REV-01209,Positive,Neutral,Mobile App
+REV-01210,Neutral,Negative,Mobile App
+REV-01211,Neutral,Neutral,Mobile App
+REV-01212,Negative,Negative,Website
+REV-01213,Positive,Positive,Mobile App
+REV-01214,Positive,Positive,Mobile App
+REV-01215,Negative,Negative,Mobile App
+REV-01216,Negative,Negative,Mobile App
+REV-01217,Positive,Positive,Mobile App
+REV-01218,Positive,Positive,Website
+REV-01219,Negative,Negative,Website
+REV-01220,Positive,Positive,Website
+REV-01221,Negative,Negative,Website
+REV-01222,Neutral,Positive,Mobile App
+REV-01223,Positive,Positive,Website
+REV-01224,Neutral,Neutral,Website
+REV-01225,Positive,Positive,Website
+REV-01226,Neutral,Neutral,Mobile App
+REV-01227,Negative,Negative,Website
+REV-01228,Positive,Positive,Mobile App
+REV-01229,Neutral,Neutral,Mobile App
+REV-01230,Positive,Positive,Mobile App
+REV-01231,Negative,Negative,Website
+REV-01232,Negative,Negative,Mobile App
+REV-01233,Negative,Neutral,Website
+REV-01234,Positive,Neutral,Website
+REV-01235,Neutral,Neutral,Website
+REV-01236,Positive,Neutral,Mobile App
+REV-01237,Neutral,Neutral,Mobile App
+REV-01238,Positive,Positive,Website
+REV-01239,Negative,Negative,Mobile App
+REV-01240,Positive,Positive,Mobile App
+REV-01241,Positive,Positive,Mobile App
+REV-01242,Positive,Positive,Website
+REV-01243,Positive,Positive,Mobile App
+REV-01244,Positive,Positive,Mobile App
+REV-01245,Positive,Positive,Website
+REV-01246,Negative,Negative,Mobile App
+REV-01247,Negative,Negative,Website
+REV-01248,Positive,Positive,Mobile App
+REV-01249,Positive,Positive,Mobile App
+REV-01250,Positive,Positive,Mobile App
+REV-01251,Neutral,Negative,Mobile App
+REV-01252,Negative,Negative,Mobile App
+REV-01253,Negative,Negative,Mobile App
+REV-01254,Positive,Positive,Website
+REV-01255,Neutral,Neutral,Mobile App
+REV-01256,Negative,Positive,Mobile App
+REV-01257,Neutral,Neutral,Mobile App
+REV-01258,Negative,Negative,Website
+REV-01259,Positive,Positive,Website
+REV-01260,Negative,Negative,Website
+REV-01261,Positive,Positive,Mobile App
+REV-01262,Neutral,Neutral,Mobile App
+REV-01263,Neutral,Neutral,Website
+REV-01264,Negative,Negative,Website
+REV-01265,Negative,Negative,Website
+REV-01266,Neutral,Neutral,Mobile App
+REV-01267,Neutral,Negative,Website
+REV-01268,Positive,Positive,Mobile App
+REV-01269,Negative,Neutral,Mobile App
+REV-01270,Positive,Positive,Mobile App
+REV-01271,Positive,Positive,Website
+REV-01272,Positive,Positive,Mobile App
+REV-01273,Negative,Negative,Website
+REV-01274,Neutral,Neutral,Website
+REV-01275,Negative,Negative,Website
+REV-01276,Negative,Negative,Website
+REV-01277,Positive,Positive,Mobile App
+REV-01278,Negative,Negative,Mobile App
+REV-01279,Neutral,Neutral,Mobile App
+REV-01280,Positive,Positive,Mobile App
+REV-01281,Positive,Positive,Website
+REV-01282,Positive,Positive,Website
+REV-01283,Negative,Negative,Website
+REV-01284,Neutral,Neutral,Website
+REV-01285,Positive,Positive,Mobile App
+REV-01286,Negative,Neutral,Website
+REV-01287,Neutral,Neutral,Mobile App
+REV-01288,Negative,Negative,Website
+REV-01289,Negative,Negative,Website
+REV-01290,Neutral,Neutral,Website
+REV-01291,Negative,Negative,Website
+REV-01292,Positive,Positive,Mobile App
+REV-01293,Positive,Positive,Mobile App
+REV-01294,Positive,Positive,Mobile App
+REV-01295,Negative,Negative,Mobile App
+REV-01296,Negative,Negative,Website
+REV-01297,Negative,Negative,Website
+REV-01298,Positive,Positive,Mobile App
+REV-01299,Positive,Positive,Mobile App
+REV-01300,Negative,Negative,Website
+REV-01301,Positive,Positive,Website
+REV-01302,Negative,Negative,Mobile App
+REV-01303,Positive,Positive,Mobile App
+REV-01304,Positive,Positive,Mobile App
+REV-01305,Positive,Neutral,Website
+REV-01306,Positive,Positive,Mobile App
+REV-01307,Positive,Positive,Mobile App
+REV-01308,Neutral,Neutral,Mobile App
+REV-01309,Positive,Positive,Mobile App
+REV-01310,Negative,Negative,Mobile App
+REV-01311,Positive,Positive,Website
+REV-01312,Positive,Positive,Mobile App
+REV-01313,Positive,Positive,Website
+REV-01314,Neutral,Positive,Mobile App
+REV-01315,Positive,Positive,Mobile App
+REV-01316,Positive,Positive,Mobile App
+REV-01317,Positive,Neutral,Website
+REV-01318,Negative,Negative,Website
+REV-01319,Negative,Negative,Website
+REV-01320,Negative,Negative,Mobile App
+REV-01321,Negative,Neutral,Mobile App
+REV-01322,Positive,Positive,Website
+REV-01323,Negative,Negative,Website
+REV-01324,Positive,Positive,Mobile App
+REV-01325,Neutral,Positive,Website
+REV-01326,Negative,Negative,Mobile App
+REV-01327,Positive,Positive,Website
+REV-01328,Positive,Neutral,Website
+REV-01329,Neutral,Neutral,Website
+REV-01330,Positive,Positive,Mobile App
+REV-01331,Positive,Positive,Mobile App
+REV-01332,Negative,Negative,Website
+REV-01333,Positive,Positive,Mobile App
+REV-01334,Positive,Positive,Mobile App
+REV-01335,Positive,Neutral,Mobile App
+REV-01336,Negative,Negative,Mobile App
+REV-01337,Positive,Positive,Website
+REV-01338,Negative,Negative,Mobile App
+REV-01339,Negative,Negative,Mobile App
+REV-01340,Negative,Negative,Website
+REV-01341,Neutral,Negative,Mobile App
+REV-01342,Positive,Positive,Mobile App
+REV-01343,Positive,Positive,Mobile App
+REV-01344,Positive,Positive,Website
+REV-01345,Neutral,Neutral,Website
+REV-01346,Neutral,Neutral,Mobile App
+REV-01347,Neutral,Neutral,Mobile App
+REV-01348,Positive,Positive,Website
+REV-01349,Negative,Negative,Website
+REV-01350,Positive,Positive,Website
+REV-01351,Positive,Positive,Mobile App
+REV-01352,Neutral,Neutral,Mobile App
+REV-01353,Positive,Positive,Website
+REV-01354,Neutral,Neutral,Mobile App
+REV-01355,Positive,Positive,Mobile App
+REV-01356,Positive,Positive,Mobile App
+REV-01357,Neutral,Neutral,Mobile App
+REV-01358,Negative,Negative,Mobile App
+REV-01359,Positive,Positive,Mobile App
+REV-01360,Positive,Neutral,Mobile App
+REV-01361,Negative,Negative,Website
+REV-01362,Positive,Positive,Website
+REV-01363,Positive,Positive,Website
+REV-01364,Positive,Positive,Website
+REV-01365,Negative,Negative,Website
+REV-01366,Positive,Neutral,Website
+REV-01367,Positive,Positive,Website
+REV-01368,Negative,Negative,Website
+REV-01369,Negative,Negative,Website
+REV-01370,Positive,Positive,Mobile App
+REV-01371,Negative,Negative,Mobile App
+REV-01372,Positive,Neutral,Website
+REV-01373,Neutral,Neutral,Mobile App
+REV-01374,Negative,Negative,Mobile App
+REV-01375,Positive,Positive,Website
+REV-01376,Neutral,Neutral,Website
+REV-01377,Positive,Positive,Website
+REV-01378,Neutral,Negative,Mobile App
+REV-01379,Positive,Positive,Mobile App
+REV-01380,Negative,Negative,Website
+REV-01381,Neutral,Negative,Mobile App
+REV-01382,Positive,Positive,Mobile App
+REV-01383,Negative,Negative,Mobile App
+REV-01384,Positive,Positive,Website
+REV-01385,Neutral,Neutral,Mobile App
+REV-01386,Positive,Positive,Mobile App
+REV-01387,Negative,Negative,Mobile App
+REV-01388,Positive,Neutral,Mobile App
+REV-01389,Neutral,Negative,Mobile App
+REV-01390,Negative,Negative,Mobile App
+REV-01391,Negative,Negative,Mobile App
+REV-01392,Negative,Negative,Website
+REV-01393,Positive,Neutral,Website
+REV-01394,Neutral,Positive,Mobile App
+REV-01395,Positive,Positive,Website
+REV-01396,Neutral,Neutral,Mobile App
+REV-01397,Negative,Negative,Mobile App
+REV-01398,Positive,Positive,Mobile App
+REV-01399,Positive,Positive,Website
+REV-01400,Negative,Negative,Mobile App
+REV-01401,Negative,Negative,Mobile App
+REV-01402,Negative,Negative,Website
+REV-01403,Positive,Positive,Website
+REV-01404,Positive,Positive,Mobile App
+REV-01405,Neutral,Neutral,Website
+REV-01406,Positive,Positive,Website
+REV-01407,Positive,Positive,Mobile App
+REV-01408,Positive,Positive,Mobile App
+REV-01409,Positive,Positive,Mobile App
+REV-01410,Negative,Negative,Website
+REV-01411,Negative,Negative,Website
+REV-01412,Negative,Negative,Website
+REV-01413,Negative,Negative,Mobile App
+REV-01414,Positive,Positive,Website
+REV-01415,Positive,Positive,Website
+REV-01416,Negative,Negative,Mobile App
+REV-01417,Negative,Negative,Mobile App
+REV-01418,Neutral,Neutral,Mobile App
+REV-01419,Positive,Positive,Website
+REV-01420,Neutral,Negative,Mobile App
+REV-01421,Positive,Positive,Website
+REV-01422,Negative,Negative,Website
+REV-01423,Negative,Negative,Mobile App
+REV-01424,Positive,Positive,Mobile App
+REV-01425,Positive,Positive,Mobile App
+REV-01426,Negative,Negative,Mobile App
+REV-01427,Positive,Neutral,Mobile App
+REV-01428,Positive,Positive,Website
+REV-01429,Positive,Positive,Website
+REV-01430,Neutral,Neutral,Website
+REV-01431,Positive,Positive,Mobile App
+REV-01432,Neutral,Neutral,Website
+REV-01433,Positive,Positive,Mobile App
+REV-01434,Negative,Negative,Mobile App
+REV-01435,Negative,Negative,Website
+REV-01436,Neutral,Neutral,Website
+REV-01437,Positive,Positive,Mobile App
+REV-01438,Negative,Positive,Website
+REV-01439,Positive,Positive,Mobile App
+REV-01440,Positive,Positive,Website
+REV-01441,Negative,Negative,Website
+REV-01442,Positive,Positive,Website
+REV-01443,Neutral,Neutral,Website
+REV-01444,Positive,Positive,Website
+REV-01445,Negative,Positive,Mobile App
+REV-01446,Positive,Positive,Website
+REV-01447,Positive,Positive,Website
+REV-01448,Positive,Positive,Website
+REV-01449,Positive,Positive,Mobile App
+REV-01450,Neutral,Neutral,Mobile App
+REV-01451,Positive,Positive,Mobile App
+REV-01452,Positive,Positive,Mobile App
+REV-01453,Positive,Positive,Mobile App
+REV-01454,Negative,Neutral,Website
+REV-01455,Positive,Neutral,Website
+REV-01456,Positive,Positive,Website
+REV-01457,Positive,Positive,Mobile App
+REV-01458,Negative,Negative,Mobile App
+REV-01459,Positive,Positive,Website
+REV-01460,Neutral,Neutral,Mobile App
+REV-01461,Positive,Positive,Mobile App
+REV-01462,Negative,Positive,Mobile App
+REV-01463,Positive,Positive,Website
+REV-01464,Positive,Positive,Website
+REV-01465,Negative,Negative,Mobile App
+REV-01466,Positive,Positive,Mobile App
+REV-01467,Neutral,Neutral,Mobile App
+REV-01468,Positive,Positive,Mobile App
+REV-01469,Positive,Positive,Website
+REV-01470,Positive,Positive,Mobile App
+REV-01471,Positive,Positive,Website
+REV-01472,Positive,Positive,Website
+REV-01473,Neutral,Neutral,Website
+REV-01474,Neutral,Neutral,Mobile App
+REV-01475,Positive,Positive,Website
+REV-01476,Positive,Positive,Website
+REV-01477,Positive,Positive,Mobile App
+REV-01478,Positive,Positive,Mobile App
+REV-01479,Neutral,Neutral,Mobile App
+REV-01480,Positive,Positive,Website
+REV-01481,Negative,Negative,Mobile App
+REV-01482,Positive,Positive,Website
+REV-01483,Negative,Negative,Website
+REV-01484,Neutral,Neutral,Mobile App
+REV-01485,Neutral,Neutral,Website
+REV-01486,Neutral,Negative,Website
+REV-01487,Positive,Positive,Website
+REV-01488,Neutral,Neutral,Website
+REV-01489,Neutral,Neutral,Mobile App
+REV-01490,Negative,Negative,Website
+REV-01491,Neutral,Neutral,Mobile App
+REV-01492,Negative,Negative,Website
+REV-01493,Negative,Negative,Website
+REV-01494,Positive,Positive,Mobile App
+REV-01495,Positive,Positive,Website
+REV-01496,Positive,Positive,Website
+REV-01497,Neutral,Negative,Website
+REV-01498,Neutral,Neutral,Website
+REV-01499,Positive,Positive,Website
+REV-01500,Positive,Positive,Website
+REV-01501,Neutral,Neutral,Mobile App
+REV-01502,Negative,Negative,Mobile App
+REV-01503,Neutral,Negative,Mobile App
+REV-01504,Neutral,Neutral,Website
+REV-01505,Neutral,Neutral,Website
+REV-01506,Positive,Positive,Website
+REV-01507,Positive,Neutral,Mobile App
+REV-01508,Positive,Positive,Website
+REV-01509,Positive,Positive,Mobile App
+REV-01510,Positive,Positive,Website
+REV-01511,Positive,Positive,Website
+REV-01512,Positive,Neutral,Website
+REV-01513,Negative,Negative,Mobile App
+REV-01514,Negative,Negative,Website
+REV-01515,Negative,Negative,Mobile App
+REV-01516,Positive,Positive,Website
+REV-01517,Positive,Positive,Website
+REV-01518,Negative,Negative,Mobile App
+REV-01519,Positive,Neutral,Website
+REV-01520,Negative,Neutral,Website
+REV-01521,Positive,Positive,Website
+REV-01522,Neutral,Positive,Website
+REV-01523,Negative,Negative,Mobile App
+REV-01524,Neutral,Neutral,Mobile App
+REV-01525,Negative,Negative,Website
+REV-01526,Negative,Negative,Website
+REV-01527,Neutral,Positive,Mobile App
+REV-01528,Positive,Positive,Website
+REV-01529,Positive,Positive,Mobile App
+REV-01530,Neutral,Neutral,Website
+REV-01531,Positive,Positive,Mobile App
+REV-01532,Positive,Positive,Mobile App
+REV-01533,Negative,Negative,Mobile App
+REV-01534,Neutral,Neutral,Mobile App
+REV-01535,Negative,Negative,Website
+REV-01536,Negative,Negative,Website
+REV-01537,Positive,Positive,Mobile App
+REV-01538,Negative,Negative,Mobile App
+REV-01539,Positive,Neutral,Mobile App
+REV-01540,Positive,Positive,Mobile App
+REV-01541,Negative,Negative,Website
+REV-01542,Positive,Positive,Mobile App
+REV-01543,Negative,Negative,Mobile App
+REV-01544,Positive,Positive,Mobile App
+REV-01545,Neutral,Neutral,Mobile App
+REV-01546,Positive,Negative,Mobile App
+REV-01547,Positive,Positive,Mobile App
+REV-01548,Negative,Negative,Mobile App
+REV-01549,Positive,Positive,Website
+REV-01550,Positive,Positive,Mobile App
+REV-01551,Positive,Neutral,Mobile App
+REV-01552,Positive,Positive,Mobile App
+REV-01553,Positive,Positive,Website
+REV-01554,Negative,Negative,Website
+REV-01555,Negative,Negative,Website
+REV-01556,Positive,Positive,Mobile App
+REV-01557,Neutral,Neutral,Mobile App
+REV-01558,Positive,Positive,Mobile App
+REV-01559,Positive,Positive,Website
+REV-01560,Neutral,Neutral,Mobile App
+REV-01561,Negative,Negative,Website
+REV-01562,Positive,Positive,Website
+REV-01563,Negative,Negative,Website
+REV-01564,Positive,Positive,Website
+REV-01565,Neutral,Positive,Website
+REV-01566,Positive,Positive,Mobile App
+REV-01567,Negative,Negative,Mobile App
+REV-01568,Positive,Positive,Website
+REV-01569,Neutral,Positive,Mobile App
+REV-01570,Positive,Positive,Mobile App
+REV-01571,Negative,Negative,Website
+REV-01572,Positive,Positive,Website
+REV-01573,Positive,Positive,Mobile App
+REV-01574,Negative,Negative,Mobile App
+REV-01575,Negative,Negative,Mobile App
+REV-01576,Negative,Negative,Mobile App
+REV-01577,Positive,Positive,Website
+REV-01578,Positive,Positive,Mobile App
+REV-01579,Positive,Positive,Website
+REV-01580,Negative,Neutral,Website
+REV-01581,Neutral,Neutral,Mobile App
+REV-01582,Positive,Positive,Mobile App
+REV-01583,Neutral,Neutral,Mobile App
+REV-01584,Positive,Positive,Website
+REV-01585,Negative,Neutral,Website
+REV-01586,Positive,Positive,Website
+REV-01587,Neutral,Negative,Website
+REV-01588,Neutral,Neutral,Mobile App
+REV-01589,Positive,Positive,Website
+REV-01590,Positive,Positive,Website
+REV-01591,Positive,Positive,Mobile App
+REV-01592,Negative,Negative,Website
+REV-01593,Negative,Negative,Website
+REV-01594,Positive,Positive,Mobile App
+REV-01595,Positive,Positive,Website
+REV-01596,Negative,Negative,Website
+REV-01597,Negative,Negative,Website
+REV-01598,Negative,Negative,Website
+REV-01599,Positive,Positive,Mobile App
+REV-01600,Negative,Negative,Website
+REV-01601,Neutral,Neutral,Mobile App
+REV-01602,Negative,Neutral,Website
+REV-01603,Neutral,Neutral,Mobile App
+REV-01604,Negative,Negative,Mobile App
+REV-01605,Positive,Positive,Mobile App
+REV-01606,Negative,Negative,Website
+REV-01607,Positive,Positive,Website
+REV-01608,Negative,Neutral,Website
+REV-01609,Positive,Positive,Mobile App
+REV-01610,Positive,Positive,Website
+REV-01611,Positive,Neutral,Website
+REV-01612,Positive,Positive,Website
+REV-01613,Neutral,Negative,Website
+REV-01614,Neutral,Neutral,Mobile App
+REV-01615,Positive,Positive,Mobile App
+REV-01616,Positive,Positive,Website
+REV-01617,Positive,Positive,Website
+REV-01618,Positive,Positive,Website
+REV-01619,Positive,Positive,Mobile App
+REV-01620,Neutral,Positive,Website
+REV-01621,Negative,Negative,Mobile App
+REV-01622,Positive,Positive,Mobile App
+REV-01623,Positive,Positive,Website
+REV-01624,Negative,Neutral,Website
+REV-01625,Positive,Positive,Website
+REV-01626,Negative,Negative,Mobile App
+REV-01627,Positive,Positive,Mobile App
+REV-01628,Negative,Negative,Website
+REV-01629,Neutral,Neutral,Mobile App
+REV-01630,Positive,Positive,Website
+REV-01631,Neutral,Neutral,Website
+REV-01632,Positive,Positive,Mobile App
+REV-01633,Positive,Positive,Mobile App
+REV-01634,Positive,Positive,Mobile App
+REV-01635,Negative,Neutral,Mobile App
+REV-01636,Neutral,Neutral,Website
+REV-01637,Negative,Negative,Website
+REV-01638,Positive,Positive,Website
+REV-01639,Positive,Positive,Mobile App
+REV-01640,Positive,Positive,Website
+REV-01641,Positive,Positive,Mobile App
+REV-01642,Positive,Positive,Mobile App
+REV-01643,Positive,Positive,Mobile App
+REV-01644,Negative,Negative,Website
+REV-01645,Positive,Positive,Mobile App
+REV-01646,Negative,Negative,Mobile App
+REV-01647,Positive,Positive,Mobile App
+REV-01648,Positive,Positive,Mobile App
+REV-01649,Positive,Positive,Mobile App
+REV-01650,Negative,Negative,Mobile App
+REV-01651,Neutral,Neutral,Mobile App
+REV-01652,Negative,Negative,Mobile App
+REV-01653,Neutral,Neutral,Mobile App
+REV-01654,Negative,Negative,Mobile App
+REV-01655,Positive,Positive,Mobile App
+REV-01656,Positive,Positive,Mobile App
+REV-01657,Neutral,Neutral,Website
+REV-01658,Neutral,Neutral,Website
+REV-01659,Neutral,Neutral,Mobile App
+REV-01660,Positive,Positive,Mobile App
+REV-01661,Positive,Positive,Mobile App
+REV-01662,Positive,Positive,Website
+REV-01663,Neutral,Neutral,Website
+REV-01664,Positive,Positive,Website
+REV-01665,Positive,Positive,Mobile App
+REV-01666,Negative,Negative,Mobile App
+REV-01667,Positive,Positive,Mobile App
+REV-01668,Negative,Negative,Mobile App
+REV-01669,Positive,Positive,Website
+REV-01670,Neutral,Neutral,Mobile App
+REV-01671,Positive,Positive,Website
+REV-01672,Positive,Positive,Website
+REV-01673,Positive,Positive,Mobile App
+REV-01674,Positive,Positive,Website
+REV-01675,Neutral,Positive,Website
+REV-01676,Negative,Negative,Website
+REV-01677,Neutral,Positive,Website
+REV-01678,Negative,Negative,Mobile App
+REV-01679,Positive,Positive,Mobile App
+REV-01680,Neutral,Neutral,Website
+REV-01681,Positive,Positive,Mobile App
+REV-01682,Positive,Positive,Website
+REV-01683,Positive,Positive,Mobile App
+REV-01684,Negative,Negative,Mobile App
+REV-01685,Positive,Positive,Mobile App
+REV-01686,Positive,Positive,Mobile App
+REV-01687,Neutral,Negative,Mobile App
+REV-01688,Positive,Positive,Website
+REV-01689,Positive,Positive,Mobile App
+REV-01690,Negative,Negative,Website
+REV-01691,Positive,Positive,Website
+REV-01692,Neutral,Neutral,Mobile App
+REV-01693,Negative,Negative,Website
+REV-01694,Neutral,Neutral,Mobile App
+REV-01695,Negative,Neutral,Website
+REV-01696,Negative,Negative,Website
+REV-01697,Negative,Negative,Mobile App
+REV-01698,Positive,Positive,Mobile App
+REV-01699,Positive,Positive,Mobile App
+REV-01700,Positive,Positive,Mobile App
+REV-01701,Neutral,Negative,Website
+REV-01702,Neutral,Neutral,Mobile App
+REV-01703,Positive,Positive,Website
+REV-01704,Neutral,Neutral,Website
+REV-01705,Negative,Negative,Website
+REV-01706,Positive,Positive,Website
+REV-01707,Negative,Negative,Website
+REV-01708,Positive,Positive,Website
+REV-01709,Positive,Positive,Mobile App
+REV-01710,Negative,Negative,Website
+REV-01711,Negative,Negative,Website
+REV-01712,Positive,Positive,Website
+REV-01713,Neutral,Neutral,Mobile App
+REV-01714,Negative,Negative,Mobile App
+REV-01715,Positive,Positive,Website
+REV-01716,Negative,Negative,Mobile App
+REV-01717,Positive,Positive,Website
+REV-01718,Positive,Positive,Mobile App
+REV-01719,Negative,Neutral,Website
+REV-01720,Negative,Negative,Mobile App
+REV-01721,Negative,Negative,Mobile App
+REV-01722,Neutral,Neutral,Mobile App
+REV-01723,Negative,Negative,Website
+REV-01724,Positive,Positive,Website
+REV-01725,Negative,Negative,Website
+REV-01726,Positive,Positive,Mobile App
+REV-01727,Positive,Positive,Mobile App
+REV-01728,Positive,Positive,Website
+REV-01729,Positive,Positive,Mobile App
+REV-01730,Neutral,Negative,Website
+REV-01731,Positive,Neutral,Website
+REV-01732,Positive,Positive,Website
+REV-01733,Neutral,Positive,Website
+REV-01734,Negative,Negative,Mobile App
+REV-01735,Positive,Positive,Mobile App
+REV-01736,Neutral,Neutral,Mobile App
+REV-01737,Negative,Negative,Website
+REV-01738,Neutral,Neutral,Mobile App
+REV-01739,Neutral,Neutral,Website
+REV-01740,Positive,Positive,Website
+REV-01741,Positive,Positive,Website
+REV-01742,Positive,Neutral,Website
+REV-01743,Negative,Positive,Website
+REV-01744,Neutral,Neutral,Website
+REV-01745,Neutral,Negative,Mobile App
+REV-01746,Negative,Negative,Mobile App
+REV-01747,Negative,Negative,Mobile App
+REV-01748,Positive,Positive,Mobile App
+REV-01749,Negative,Negative,Website
+REV-01750,Positive,Positive,Website
+REV-01751,Negative,Negative,Mobile App
+REV-01752,Negative,Negative,Mobile App
+REV-01753,Negative,Negative,Mobile App
+REV-01754,Positive,Positive,Mobile App
+REV-01755,Positive,Positive,Mobile App
+REV-01756,Positive,Negative,Mobile App
+REV-01757,Neutral,Neutral,Mobile App
+REV-01758,Negative,Negative,Mobile App
+REV-01759,Positive,Positive,Website
+REV-01760,Neutral,Neutral,Website
+REV-01761,Positive,Positive,Website
+REV-01762,Negative,Negative,Website
+REV-01763,Neutral,Neutral,Mobile App
+REV-01764,Negative,Negative,Website
+REV-01765,Neutral,Positive,Mobile App
+REV-01766,Positive,Positive,Website
+REV-01767,Neutral,Negative,Mobile App
+REV-01768,Neutral,Neutral,Mobile App
+REV-01769,Neutral,Neutral,Website
+REV-01770,Neutral,Negative,Website
+REV-01771,Positive,Positive,Mobile App
+REV-01772,Positive,Positive,Mobile App
+REV-01773,Positive,Positive,Mobile App
+REV-01774,Positive,Positive,Website
+REV-01775,Neutral,Neutral,Website
+REV-01776,Positive,Negative,Mobile App
+REV-01777,Neutral,Neutral,Website
+REV-01778,Negative,Negative,Mobile App
+REV-01779,Positive,Positive,Website
+REV-01780,Negative,Negative,Website
+REV-01781,Positive,Positive,Website
+REV-01782,Neutral,Neutral,Website
+REV-01783,Positive,Positive,Website
+REV-01784,Positive,Positive,Mobile App
+REV-01785,Positive,Positive,Mobile App
+REV-01786,Positive,Positive,Website
+REV-01787,Positive,Positive,Mobile App
+REV-01788,Negative,Negative,Mobile App
+REV-01789,Positive,Positive,Website
+REV-01790,Negative,Negative,Mobile App
+REV-01791,Positive,Positive,Website
+REV-01792,Positive,Neutral,Mobile App
+REV-01793,Positive,Positive,Mobile App
+REV-01794,Negative,Negative,Mobile App
+REV-01795,Negative,Negative,Mobile App
+REV-01796,Positive,Positive,Mobile App
+REV-01797,Negative,Negative,Mobile App
+REV-01798,Negative,Negative,Mobile App
+REV-01799,Negative,Negative,Website
+REV-01800,Positive,Positive,Website
+REV-01801,Positive,Neutral,Website
+REV-01802,Neutral,Positive,Website
+REV-01803,Negative,Negative,Mobile App
+REV-01804,Neutral,Neutral,Mobile App
+REV-01805,Positive,Positive,Mobile App
+REV-01806,Positive,Neutral,Website
+REV-01807,Negative,Neutral,Website
+REV-01808,Negative,Negative,Website
+REV-01809,Negative,Neutral,Mobile App
+REV-01810,Positive,Positive,Website
+REV-01811,Positive,Positive,Mobile App
+REV-01812,Negative,Negative,Website
+REV-01813,Negative,Negative,Mobile App
+REV-01814,Negative,Negative,Website
+REV-01815,Positive,Positive,Mobile App
+REV-01816,Negative,Neutral,Website
+REV-01817,Positive,Positive,Website
+REV-01818,Positive,Positive,Mobile App
+REV-01819,Neutral,Neutral,Mobile App
+REV-01820,Negative,Negative,Website
+REV-01821,Negative,Negative,Mobile App
+REV-01822,Positive,Positive,Website
+REV-01823,Positive,Positive,Mobile App
+REV-01824,Positive,Positive,Website
+REV-01825,Positive,Positive,Mobile App
+REV-01826,Negative,Negative,Website
+REV-01827,Positive,Positive,Website
+REV-01828,Positive,Positive,Website
+REV-01829,Negative,Negative,Mobile App
+REV-01830,Positive,Positive,Website
+REV-01831,Positive,Positive,Mobile App
+REV-01832,Positive,Positive,Mobile App
+REV-01833,Positive,Positive,Mobile App
+REV-01834,Positive,Positive,Website
+REV-01835,Positive,Neutral,Mobile App
+REV-01836,Negative,Negative,Mobile App
+REV-01837,Neutral,Neutral,Mobile App
+REV-01838,Positive,Neutral,Website
+REV-01839,Negative,Negative,Mobile App
+REV-01840,Neutral,Positive,Mobile App
+REV-01841,Neutral,Positive,Mobile App
+REV-01842,Neutral,Neutral,Mobile App
+REV-01843,Positive,Neutral,Website
+REV-01844,Positive,Positive,Website
+REV-01845,Negative,Negative,Mobile App
+REV-01846,Negative,Neutral,Mobile App
+REV-01847,Negative,Negative,Mobile App
+REV-01848,Positive,Positive,Mobile App
+REV-01849,Positive,Positive,Website
+REV-01850,Negative,Positive,Website
+REV-01851,Positive,Positive,Website
+REV-01852,Positive,Positive,Website
+REV-01853,Positive,Positive,Mobile App
+REV-01854,Positive,Positive,Mobile App
+REV-01855,Negative,Negative,Website
+REV-01856,Positive,Positive,Website
+REV-01857,Neutral,Positive,Mobile App
+REV-01858,Positive,Positive,Mobile App
+REV-01859,Positive,Positive,Mobile App
+REV-01860,Positive,Positive,Mobile App
+REV-01861,Positive,Positive,Mobile App
+REV-01862,Negative,Negative,Website
+REV-01863,Positive,Positive,Website
+REV-01864,Positive,Positive,Mobile App
+REV-01865,Positive,Positive,Mobile App
+REV-01866,Negative,Negative,Website
+REV-01867,Negative,Negative,Mobile App
+REV-01868,Negative,Negative,Website
+REV-01869,Positive,Positive,Website
+REV-01870,Positive,Positive,Website
+REV-01871,Negative,Negative,Website
+REV-01872,Positive,Positive,Mobile App
+REV-01873,Positive,Positive,Mobile App
+REV-01874,Positive,Positive,Website
+REV-01875,Positive,Positive,Mobile App
+REV-01876,Positive,Positive,Mobile App
+REV-01877,Positive,Positive,Mobile App
+REV-01878,Negative,Negative,Mobile App
+REV-01879,Positive,Positive,Website
+REV-01880,Positive,Positive,Mobile App
+REV-01881,Positive,Positive,Website
+REV-01882,Positive,Positive,Website
+REV-01883,Positive,Positive,Mobile App
+REV-01884,Negative,Negative,Website
+REV-01885,Neutral,Positive,Mobile App
+REV-01886,Negative,Negative,Mobile App
+REV-01887,Negative,Negative,Website
+REV-01888,Positive,Neutral,Mobile App
+REV-01889,Positive,Positive,Website
+REV-01890,Negative,Negative,Website
+REV-01891,Neutral,Negative,Mobile App
+REV-01892,Positive,Positive,Mobile App
+REV-01893,Negative,Negative,Mobile App
+REV-01894,Positive,Positive,Website
+REV-01895,Positive,Neutral,Mobile App
+REV-01896,Positive,Positive,Website
+REV-01897,Negative,Negative,Website
+REV-01898,Neutral,Negative,Mobile App
+REV-01899,Positive,Positive,Mobile App
+REV-01900,Positive,Negative,Mobile App
+REV-01901,Negative,Negative,Website
+REV-01902,Positive,Positive,Mobile App
+REV-01903,Negative,Negative,Website
+REV-01904,Positive,Positive,Mobile App
+REV-01905,Negative,Negative,Mobile App
+REV-01906,Positive,Positive,Website
+REV-01907,Neutral,Neutral,Website
+REV-01908,Neutral,Neutral,Mobile App
+REV-01909,Negative,Negative,Mobile App
+REV-01910,Neutral,Positive,Mobile App
+REV-01911,Positive,Positive,Mobile App
+REV-01912,Positive,Positive,Mobile App
+REV-01913,Neutral,Neutral,Website
+REV-01914,Neutral,Neutral,Website
+REV-01915,Positive,Positive,Website
+REV-01916,Positive,Positive,Website
+REV-01917,Positive,Positive,Mobile App
+REV-01918,Neutral,Neutral,Website
+REV-01919,Neutral,Neutral,Website
+REV-01920,Positive,Positive,Website
+REV-01921,Negative,Negative,Mobile App
+REV-01922,Positive,Positive,Website
+REV-01923,Neutral,Positive,Mobile App
+REV-01924,Positive,Neutral,Website
+REV-01925,Negative,Negative,Mobile App
+REV-01926,Positive,Positive,Website
+REV-01927,Neutral,Neutral,Mobile App
+REV-01928,Positive,Positive,Website
+REV-01929,Negative,Neutral,Mobile App
+REV-01930,Positive,Positive,Mobile App
+REV-01931,Positive,Positive,Website
+REV-01932,Positive,Positive,Mobile App
+REV-01933,Positive,Positive,Mobile App
+REV-01934,Positive,Positive,Website
+REV-01935,Positive,Positive,Website
+REV-01936,Negative,Neutral,Mobile App
+REV-01937,Positive,Positive,Website
+REV-01938,Neutral,Neutral,Website
+REV-01939,Negative,Negative,Website
+REV-01940,Negative,Negative,Mobile App
+REV-01941,Neutral,Neutral,Mobile App
+REV-01942,Positive,Positive,Mobile App
+REV-01943,Positive,Positive,Mobile App
+REV-01944,Positive,Positive,Mobile App
+REV-01945,Positive,Positive,Mobile App
+REV-01946,Neutral,Neutral,Mobile App
+REV-01947,Negative,Negative,Website
+REV-01948,Neutral,Neutral,Mobile App
+REV-01949,Neutral,Neutral,Mobile App
+REV-01950,Negative,Negative,Website
+REV-01951,Negative,Negative,Website
+REV-01952,Positive,Positive,Website
+REV-01953,Positive,Positive,Mobile App
+REV-01954,Positive,Positive,Website
+REV-01955,Positive,Positive,Mobile App
+REV-01956,Positive,Positive,Mobile App
+REV-01957,Neutral,Neutral,Mobile App
+REV-01958,Positive,Positive,Website
+REV-01959,Positive,Positive,Website
+REV-01960,Negative,Negative,Mobile App
+REV-01961,Neutral,Neutral,Mobile App
+REV-01962,Positive,Positive,Mobile App
+REV-01963,Neutral,Neutral,Website
+REV-01964,Positive,Positive,Mobile App
+REV-01965,Positive,Positive,Website
+REV-01966,Negative,Neutral,Mobile App
+REV-01967,Neutral,Neutral,Website
+REV-01968,Neutral,Positive,Mobile App
+REV-01969,Negative,Negative,Website
+REV-01970,Negative,Negative,Website
+REV-01971,Positive,Positive,Website
+REV-01972,Negative,Negative,Website
+REV-01973,Positive,Positive,Website
+REV-01974,Negative,Negative,Website
+REV-01975,Positive,Positive,Mobile App
+REV-01976,Negative,Negative,Mobile App
+REV-01977,Neutral,Neutral,Mobile App
+REV-01978,Positive,Negative,Mobile App
+REV-01979,Positive,Neutral,Website
+REV-01980,Negative,Positive,Mobile App
+REV-01981,Positive,Positive,Website
+REV-01982,Neutral,Neutral,Website
+REV-01983,Neutral,Neutral,Website
+REV-01984,Negative,Negative,Mobile App
+REV-01985,Negative,Negative,Website
+REV-01986,Positive,Positive,Mobile App
+REV-01987,Neutral,Neutral,Mobile App
+REV-01988,Neutral,Neutral,Mobile App
+REV-01989,Positive,Positive,Mobile App
+REV-01990,Positive,Positive,Mobile App
+REV-01991,Negative,Negative,Website
+REV-01992,Positive,Positive,Website
+REV-01993,Negative,Negative,Mobile App
+REV-01994,Positive,Neutral,Website
+REV-01995,Positive,Positive,Mobile App
+REV-01996,Positive,Positive,Website
+REV-01997,Negative,Negative,Website
+REV-01998,Negative,Negative,Website
+REV-01999,Negative,Negative,Website
+REV-02000,Negative,Negative,Website
+REV-02001,Negative,Negative,Website
+REV-02002,Positive,Positive,Website
+REV-02003,Negative,Negative,Website
+REV-02004,Negative,Neutral,Website
+REV-02005,Positive,Neutral,Website
+REV-02006,Neutral,Neutral,Website
+REV-02007,Positive,Positive,Website
+REV-02008,Negative,Negative,Website
+REV-02009,Neutral,Neutral,Mobile App
+REV-02010,Negative,Negative,Website
+REV-02011,Negative,Negative,Website
+REV-02012,Positive,Positive,Website
+REV-02013,Negative,Negative,Website
+REV-02014,Positive,Positive,Website
+REV-02015,Neutral,Neutral,Website
+REV-02016,Neutral,Negative,Mobile App
+REV-02017,Positive,Positive,Mobile App
+REV-02018,Negative,Negative,Mobile App
+REV-02019,Positive,Positive,Website
+REV-02020,Positive,Positive,Website
+REV-02021,Positive,Positive,Website
+REV-02022,Positive,Positive,Mobile App
+REV-02023,Negative,Negative,Website
+REV-02024,Neutral,Positive,Website
+REV-02025,Negative,Negative,Mobile App
+REV-02026,Positive,Positive,Mobile App
+REV-02027,Positive,Neutral,Website
+REV-02028,Negative,Negative,Website
+REV-02029,Positive,Positive,Website
+REV-02030,Negative,Negative,Website
+REV-02031,Positive,Positive,Mobile App
+REV-02032,Neutral,Neutral,Website
+REV-02033,Positive,Positive,Website
+REV-02034,Positive,Positive,Mobile App
+REV-02035,Neutral,Neutral,Website
+REV-02036,Negative,Negative,Website
+REV-02037,Negative,Neutral,Mobile App
+REV-02038,Negative,Negative,Mobile App
+REV-02039,Negative,Neutral,Website
+REV-02040,Positive,Positive,Mobile App
+REV-02041,Positive,Positive,Mobile App
+REV-02042,Positive,Positive,Website
+REV-02043,Negative,Negative,Mobile App
+REV-02044,Positive,Positive,Website
+REV-02045,Positive,Positive,Website
+REV-02046,Negative,Negative,Website
+REV-02047,Positive,Positive,Website
+REV-02048,Positive,Positive,Mobile App
+REV-02049,Negative,Negative,Website
+REV-02050,Neutral,Neutral,Website
+REV-02051,Neutral,Neutral,Website
+REV-02052,Negative,Negative,Website
+REV-02053,Positive,Neutral,Mobile App
+REV-02054,Positive,Positive,Mobile App
+REV-02055,Positive,Positive,Mobile App
+REV-02056,Neutral,Neutral,Website
+REV-02057,Neutral,Neutral,Mobile App
+REV-02058,Positive,Positive,Mobile App
+REV-02059,Positive,Positive,Website
+REV-02060,Negative,Neutral,Mobile App
+REV-02061,Positive,Positive,Website
+REV-02062,Positive,Positive,Mobile App
+REV-02063,Neutral,Neutral,Mobile App
+REV-02064,Negative,Negative,Mobile App
+REV-02065,Positive,Neutral,Mobile App
+REV-02066,Negative,Negative,Website
+REV-02067,Negative,Negative,Website
+REV-02068,Negative,Neutral,Mobile App
+REV-02069,Neutral,Negative,Website
+REV-02070,Positive,Positive,Mobile App
+REV-02071,Positive,Positive,Mobile App
+REV-02072,Negative,Negative,Mobile App
+REV-02073,Positive,Neutral,Mobile App
+REV-02074,Positive,Positive,Mobile App
+REV-02075,Positive,Positive,Mobile App
+REV-02076,Negative,Negative,Website
+REV-02077,Neutral,Neutral,Website
+REV-02078,Positive,Positive,Mobile App
+REV-02079,Positive,Positive,Website
+REV-02080,Negative,Negative,Mobile App
+REV-02081,Negative,Negative,Website
+REV-02082,Neutral,Neutral,Website
+REV-02083,Positive,Positive,Website
+REV-02084,Positive,Positive,Mobile App
+REV-02085,Neutral,Neutral,Website
+REV-02086,Negative,Negative,Mobile App
+REV-02087,Positive,Neutral,Mobile App
+REV-02088,Positive,Positive,Mobile App
+REV-02089,Neutral,Negative,Website
+REV-02090,Positive,Neutral,Website
+REV-02091,Positive,Neutral,Website
+REV-02092,Negative,Negative,Mobile App
+REV-02093,Positive,Positive,Mobile App
+REV-02094,Negative,Negative,Website
+REV-02095,Positive,Positive,Mobile App
+REV-02096,Positive,Positive,Website
+REV-02097,Positive,Positive,Website
+REV-02098,Positive,Positive,Website
+REV-02099,Neutral,Negative,Website
+REV-02100,Positive,Positive,Mobile App
+REV-02101,Positive,Positive,Website
+REV-02102,Negative,Negative,Website
+REV-02103,Positive,Positive,Website
+REV-02104,Positive,Positive,Website
+REV-02105,Neutral,Negative,Website
+REV-02106,Positive,Positive,Website
+REV-02107,Positive,Neutral,Website
+REV-02108,Negative,Negative,Mobile App
+REV-02109,Positive,Positive,Mobile App
+REV-02110,Negative,Positive,Mobile App
+REV-02111,Negative,Neutral,Mobile App
+REV-02112,Negative,Negative,Website
+REV-02113,Positive,Positive,Mobile App
+REV-02114,Positive,Positive,Mobile App
+REV-02115,Negative,Negative,Mobile App
+REV-02116,Neutral,Neutral,Website
+REV-02117,Positive,Positive,Mobile App
+REV-02118,Negative,Negative,Mobile App
+REV-02119,Positive,Positive,Website
+REV-02120,Positive,Positive,Mobile App
+REV-02121,Positive,Positive,Website
+REV-02122,Positive,Neutral,Mobile App
+REV-02123,Neutral,Neutral,Website
+REV-02124,Positive,Positive,Mobile App
+REV-02125,Positive,Positive,Mobile App
+REV-02126,Positive,Positive,Mobile App
+REV-02127,Negative,Negative,Website
+REV-02128,Positive,Positive,Mobile App
+REV-02129,Neutral,Positive,Website
+REV-02130,Negative,Negative,Website
+REV-02131,Negative,Negative,Website
+REV-02132,Positive,Neutral,Website
+REV-02133,Positive,Negative,Mobile App
+REV-02134,Positive,Positive,Mobile App
+REV-02135,Positive,Positive,Mobile App
+REV-02136,Negative,Negative,Website
+REV-02137,Positive,Neutral,Mobile App
+REV-02138,Negative,Negative,Website
+REV-02139,Positive,Positive,Website
+REV-02140,Positive,Positive,Website
+REV-02141,Positive,Positive,Mobile App
+REV-02142,Positive,Positive,Mobile App
+REV-02143,Neutral,Neutral,Website
+REV-02144,Neutral,Neutral,Mobile App
+REV-02145,Positive,Positive,Mobile App
+REV-02146,Neutral,Neutral,Website
+REV-02147,Neutral,Positive,Website
+REV-02148,Neutral,Neutral,Mobile App
+REV-02149,Positive,Positive,Website
+REV-02150,Neutral,Neutral,Website
+REV-02151,Negative,Negative,Mobile App
+REV-02152,Positive,Positive,Mobile App
+REV-02153,Positive,Positive,Website
+REV-02154,Negative,Negative,Mobile App
+REV-02155,Negative,Negative,Website
+REV-02156,Negative,Negative,Website
+REV-02157,Neutral,Neutral,Mobile App
+REV-02158,Neutral,Neutral,Website
+REV-02159,Positive,Positive,Website
+REV-02160,Positive,Positive,Website
+REV-02161,Positive,Neutral,Mobile App
+REV-02162,Neutral,Neutral,Mobile App
+REV-02163,Positive,Positive,Mobile App
+REV-02164,Neutral,Negative,Website
+REV-02165,Positive,Positive,Website
+REV-02166,Positive,Positive,Mobile App
+REV-02167,Negative,Negative,Mobile App
+REV-02168,Positive,Positive,Mobile App
+REV-02169,Neutral,Neutral,Website
+REV-02170,Positive,Positive,Mobile App
+REV-02171,Negative,Negative,Website
+REV-02172,Negative,Negative,Mobile App
+REV-02173,Positive,Neutral,Website
+REV-02174,Negative,Negative,Website
+REV-02175,Positive,Positive,Mobile App
+REV-02176,Negative,Neutral,Website
+REV-02177,Positive,Neutral,Mobile App
+REV-02178,Positive,Positive,Website
+REV-02179,Positive,Positive,Website
+REV-02180,Neutral,Neutral,Mobile App
+REV-02181,Negative,Negative,Website
+REV-02182,Negative,Negative,Mobile App
+REV-02183,Neutral,Positive,Mobile App
+REV-02184,Positive,Positive,Mobile App
+REV-02185,Positive,Positive,Website
+REV-02186,Positive,Positive,Website
+REV-02187,Positive,Positive,Website
+REV-02188,Positive,Positive,Mobile App
+REV-02189,Positive,Positive,Mobile App
+REV-02190,Negative,Negative,Website
+REV-02191,Positive,Positive,Website
+REV-02192,Positive,Positive,Mobile App
+REV-02193,Positive,Positive,Website
+REV-02194,Negative,Negative,Mobile App
+REV-02195,Neutral,Neutral,Website
+REV-02196,Neutral,Neutral,Mobile App
+REV-02197,Positive,Neutral,Website
+REV-02198,Positive,Positive,Website
+REV-02199,Neutral,Neutral,Mobile App
+REV-02200,Positive,Positive,Mobile App
+REV-02201,Negative,Positive,Mobile App
+REV-02202,Neutral,Neutral,Website
+REV-02203,Negative,Negative,Mobile App
+REV-02204,Positive,Positive,Mobile App
+REV-02205,Positive,Positive,Website
+REV-02206,Negative,Negative,Mobile App
+REV-02207,Positive,Positive,Mobile App
+REV-02208,Negative,Neutral,Mobile App
+REV-02209,Positive,Positive,Website
+REV-02210,Positive,Positive,Website
+REV-02211,Positive,Positive,Website
+REV-02212,Negative,Negative,Mobile App
+REV-02213,Positive,Positive,Website
+REV-02214,Positive,Positive,Mobile App
+REV-02215,Neutral,Neutral,Mobile App
+REV-02216,Positive,Positive,Mobile App
+REV-02217,Negative,Negative,Website
+REV-02218,Positive,Positive,Website
+REV-02219,Negative,Negative,Mobile App
+REV-02220,Positive,Positive,Mobile App
+REV-02221,Positive,Positive,Website
+REV-02222,Negative,Negative,Website
+REV-02223,Negative,Negative,Website
+REV-02224,Negative,Negative,Mobile App
+REV-02225,Neutral,Negative,Website
+REV-02226,Neutral,Neutral,Website
+REV-02227,Positive,Positive,Website
+REV-02228,Negative,Negative,Mobile App
+REV-02229,Negative,Negative,Website
+REV-02230,Positive,Positive,Mobile App
+REV-02231,Negative,Negative,Mobile App
+REV-02232,Positive,Positive,Mobile App
+REV-02233,Positive,Positive,Website
+REV-02234,Positive,Positive,Website
+REV-02235,Positive,Negative,Website
+REV-02236,Positive,Positive,Mobile App
+REV-02237,Negative,Negative,Website
+REV-02238,Negative,Negative,Mobile App
+REV-02239,Negative,Negative,Website
+REV-02240,Positive,Positive,Website
+REV-02241,Negative,Negative,Website
+REV-02242,Positive,Positive,Website
+REV-02243,Positive,Positive,Mobile App
+REV-02244,Positive,Positive,Mobile App
+REV-02245,Positive,Positive,Mobile App
+REV-02246,Negative,Negative,Mobile App
+REV-02247,Positive,Positive,Website
+REV-02248,Positive,Positive,Mobile App
+REV-02249,Negative,Negative,Mobile App
+REV-02250,Negative,Negative,Mobile App
+REV-02251,Positive,Positive,Website
+REV-02252,Positive,Positive,Mobile App
+REV-02253,Positive,Neutral,Mobile App
+REV-02254,Positive,Positive,Website
+REV-02255,Positive,Positive,Website
+REV-02256,Positive,Neutral,Mobile App
+REV-02257,Neutral,Neutral,Mobile App
+REV-02258,Neutral,Neutral,Website
+REV-02259,Neutral,Positive,Mobile App
+REV-02260,Positive,Positive,Website
+REV-02261,Positive,Positive,Mobile App
+REV-02262,Positive,Positive,Mobile App
+REV-02263,Neutral,Negative,Mobile App
+REV-02264,Positive,Positive,Mobile App
+REV-02265,Positive,Positive,Mobile App
+REV-02266,Positive,Positive,Website
+REV-02267,Positive,Positive,Website
+REV-02268,Negative,Neutral,Mobile App
+REV-02269,Positive,Positive,Mobile App
+REV-02270,Negative,Negative,Mobile App
+REV-02271,Neutral,Negative,Website
+REV-02272,Neutral,Neutral,Website
+REV-02273,Positive,Positive,Website
+REV-02274,Positive,Positive,Website
+REV-02275,Positive,Positive,Website
+REV-02276,Positive,Positive,Website
+REV-02277,Positive,Positive,Website
+REV-02278,Positive,Positive,Website
+REV-02279,Negative,Negative,Mobile App
+REV-02280,Negative,Positive,Website
+REV-02281,Neutral,Neutral,Website
+REV-02282,Neutral,Neutral,Website
+REV-02283,Negative,Neutral,Website
+REV-02284,Negative,Negative,Mobile App
+REV-02285,Negative,Negative,Website
+REV-02286,Positive,Positive,Mobile App
+REV-02287,Neutral,Negative,Mobile App
+REV-02288,Neutral,Negative,Mobile App
+REV-02289,Negative,Negative,Website
+REV-02290,Positive,Positive,Website
+REV-02291,Negative,Negative,Website
+REV-02292,Negative,Negative,Mobile App
+REV-02293,Positive,Neutral,Mobile App
+REV-02294,Negative,Negative,Mobile App
+REV-02295,Negative,Negative,Mobile App
+REV-02296,Negative,Negative,Website
+REV-02297,Negative,Negative,Website
+REV-02298,Negative,Negative,Website
+REV-02299,Neutral,Negative,Mobile App
+REV-02300,Positive,Positive,Mobile App
+REV-02301,Positive,Negative,Website
+REV-02302,Positive,Positive,Website
+REV-02303,Negative,Neutral,Mobile App
+REV-02304,Positive,Positive,Website
+REV-02305,Neutral,Neutral,Website
+REV-02306,Negative,Negative,Mobile App
+REV-02307,Positive,Positive,Mobile App
+REV-02308,Negative,Neutral,Mobile App
+REV-02309,Neutral,Positive,Website
+REV-02310,Positive,Positive,Mobile App
+REV-02311,Positive,Positive,Website
+REV-02312,Neutral,Positive,Website
+REV-02313,Positive,Positive,Mobile App
+REV-02314,Positive,Positive,Website
+REV-02315,Negative,Negative,Mobile App
+REV-02316,Negative,Negative,Mobile App
+REV-02317,Neutral,Positive,Website
+REV-02318,Neutral,Negative,Website
+REV-02319,Neutral,Neutral,Mobile App
+REV-02320,Positive,Positive,Mobile App
+REV-02321,Positive,Positive,Mobile App
+REV-02322,Positive,Positive,Mobile App
+REV-02323,Neutral,Positive,Mobile App
+REV-02324,Positive,Neutral,Mobile App
+REV-02325,Positive,Positive,Website
+REV-02326,Positive,Neutral,Website
+REV-02327,Negative,Negative,Website
+REV-02328,Positive,Positive,Website
+REV-02329,Negative,Negative,Mobile App
+REV-02330,Negative,Negative,Website
+REV-02331,Negative,Negative,Website
+REV-02332,Positive,Neutral,Mobile App
+REV-02333,Positive,Positive,Website
+REV-02334,Negative,Neutral,Mobile App
+REV-02335,Neutral,Positive,Mobile App
+REV-02336,Neutral,Neutral,Mobile App
+REV-02337,Neutral,Neutral,Mobile App
+REV-02338,Negative,Neutral,Mobile App
+REV-02339,Neutral,Negative,Website
+REV-02340,Positive,Positive,Website
+REV-02341,Negative,Neutral,Website
+REV-02342,Negative,Negative,Mobile App
+REV-02343,Neutral,Neutral,Website
+REV-02344,Positive,Positive,Website
+REV-02345,Positive,Positive,Website
+REV-02346,Positive,Negative,Website
+REV-02347,Neutral,Neutral,Mobile App
+REV-02348,Positive,Positive,Website
+REV-02349,Negative,Negative,Mobile App
+REV-02350,Positive,Positive,Mobile App
+REV-02351,Positive,Positive,Website
+REV-02352,Positive,Positive,Mobile App
+REV-02353,Positive,Positive,Mobile App
+REV-02354,Positive,Positive,Mobile App
+REV-02355,Negative,Negative,Mobile App
+REV-02356,Positive,Positive,Mobile App
+REV-02357,Negative,Positive,Mobile App
+REV-02358,Positive,Positive,Mobile App
+REV-02359,Negative,Negative,Website
+REV-02360,Negative,Negative,Website
+REV-02361,Neutral,Neutral,Mobile App
+REV-02362,Negative,Negative,Mobile App
+REV-02363,Neutral,Neutral,Website
+REV-02364,Positive,Positive,Website
+REV-02365,Negative,Positive,Website
+REV-02366,Negative,Negative,Website
+REV-02367,Positive,Positive,Mobile App
+REV-02368,Neutral,Neutral,Mobile App
+REV-02369,Positive,Positive,Website
+REV-02370,Positive,Positive,Website
+REV-02371,Positive,Positive,Website
+REV-02372,Positive,Positive,Website
+REV-02373,Neutral,Neutral,Mobile App
+REV-02374,Positive,Positive,Website
+REV-02375,Negative,Negative,Website
+REV-02376,Neutral,Neutral,Website
+REV-02377,Positive,Positive,Mobile App
+REV-02378,Neutral,Neutral,Mobile App
+REV-02379,Positive,Positive,Mobile App
+REV-02380,Positive,Positive,Website
+REV-02381,Positive,Positive,Website
+REV-02382,Positive,Positive,Website
+REV-02383,Neutral,Negative,Mobile App
+REV-02384,Neutral,Neutral,Mobile App
+REV-02385,Positive,Positive,Website
+REV-02386,Neutral,Neutral,Website
+REV-02387,Positive,Positive,Mobile App
+REV-02388,Positive,Positive,Website
+REV-02389,Positive,Positive,Website
+REV-02390,Neutral,Negative,Website
+REV-02391,Negative,Negative,Mobile App
+REV-02392,Neutral,Positive,Website
+REV-02393,Negative,Negative,Website
+REV-02394,Positive,Positive,Website
+REV-02395,Neutral,Neutral,Website
+REV-02396,Negative,Negative,Mobile App
+REV-02397,Negative,Negative,Mobile App
+REV-02398,Positive,Positive,Mobile App
+REV-02399,Positive,Positive,Website
+REV-02400,Neutral,Neutral,Mobile App
+REV-02401,Negative,Neutral,Website
+REV-02402,Neutral,Positive,Mobile App
+REV-02403,Neutral,Neutral,Website
+REV-02404,Positive,Positive,Mobile App
+REV-02405,Positive,Positive,Mobile App
+REV-02406,Neutral,Positive,Mobile App
+REV-02407,Negative,Negative,Website
+REV-02408,Positive,Positive,Website
+REV-02409,Neutral,Neutral,Website
+REV-02410,Positive,Positive,Mobile App
+REV-02411,Negative,Negative,Website
+REV-02412,Neutral,Neutral,Website
+REV-02413,Negative,Negative,Website
+REV-02414,Positive,Neutral,Website
+REV-02415,Positive,Positive,Website
+REV-02416,Neutral,Neutral,Website
+REV-02417,Negative,Negative,Mobile App
+REV-02418,Negative,Negative,Mobile App
+REV-02419,Neutral,Neutral,Website
+REV-02420,Negative,Negative,Mobile App
+REV-02421,Negative,Negative,Mobile App
+REV-02422,Positive,Positive,Website
+REV-02423,Neutral,Neutral,Website
+REV-02424,Negative,Negative,Mobile App
+REV-02425,Positive,Positive,Website
+REV-02426,Negative,Positive,Mobile App
+REV-02427,Positive,Positive,Mobile App
+REV-02428,Neutral,Neutral,Mobile App
+REV-02429,Positive,Positive,Website
+REV-02430,Positive,Positive,Mobile App
+REV-02431,Positive,Neutral,Website
+REV-02432,Positive,Positive,Website
+REV-02433,Negative,Negative,Website
+REV-02434,Positive,Positive,Website
+REV-02435,Neutral,Neutral,Website
+REV-02436,Neutral,Neutral,Mobile App
+REV-02437,Neutral,Neutral,Website
+REV-02438,Positive,Neutral,Website
+REV-02439,Negative,Negative,Website
+REV-02440,Positive,Positive,Website
+REV-02441,Positive,Positive,Website
+REV-02442,Positive,Positive,Mobile App
+REV-02443,Positive,Positive,Website
+REV-02444,Neutral,Negative,Website
+REV-02445,Neutral,Neutral,Mobile App
+REV-02446,Negative,Negative,Website
+REV-02447,Negative,Negative,Mobile App
+REV-02448,Negative,Negative,Mobile App
+REV-02449,Neutral,Negative,Mobile App
+REV-02450,Negative,Negative,Mobile App
+REV-02451,Positive,Positive,Website
+REV-02452,Positive,Positive,Website
+REV-02453,Neutral,Neutral,Mobile App
+REV-02454,Positive,Positive,Mobile App
+REV-02455,Negative,Negative,Website
+REV-02456,Neutral,Neutral,Mobile App
+REV-02457,Positive,Positive,Mobile App
+REV-02458,Neutral,Positive,Mobile App
+REV-02459,Neutral,Positive,Website
+REV-02460,Positive,Positive,Mobile App
+REV-02461,Positive,Positive,Website
+REV-02462,Positive,Neutral,Website
+REV-02463,Positive,Positive,Website
+REV-02464,Positive,Positive,Mobile App
+REV-02465,Negative,Negative,Mobile App
+REV-02466,Neutral,Neutral,Website
+REV-02467,Negative,Neutral,Website
+REV-02468,Neutral,Neutral,Website
+REV-02469,Positive,Positive,Mobile App
+REV-02470,Negative,Negative,Mobile App
+REV-02471,Positive,Positive,Website
+REV-02472,Positive,Neutral,Website
+REV-02473,Positive,Positive,Mobile App
+REV-02474,Positive,Negative,Website
+REV-02475,Positive,Positive,Mobile App
+REV-02476,Negative,Negative,Mobile App
+REV-02477,Positive,Positive,Website
+REV-02478,Negative,Negative,Website
+REV-02479,Positive,Positive,Mobile App
+REV-02480,Negative,Negative,Mobile App
+REV-02481,Positive,Positive,Mobile App
+REV-02482,Positive,Positive,Mobile App
+REV-02483,Negative,Negative,Mobile App
+REV-02484,Neutral,Neutral,Website
+REV-02485,Positive,Positive,Mobile App
+REV-02486,Neutral,Neutral,Mobile App
+REV-02487,Positive,Positive,Mobile App
+REV-02488,Positive,Positive,Website
+REV-02489,Neutral,Positive,Website
+REV-02490,Negative,Negative,Mobile App
+REV-02491,Negative,Negative,Mobile App
+REV-02492,Positive,Positive,Website
+REV-02493,Neutral,Neutral,Website
+REV-02494,Positive,Positive,Website
+REV-02495,Neutral,Neutral,Website
+REV-02496,Positive,Positive,Mobile App
+REV-02497,Positive,Positive,Website
+REV-02498,Positive,Positive,Mobile App
+REV-02499,Neutral,Neutral,Mobile App
+REV-02500,Positive,Positive,Website
+REV-02501,Positive,Neutral,Website
+REV-02502,Positive,Positive,Website
+REV-02503,Positive,Positive,Website
+REV-02504,Negative,Negative,Mobile App
+REV-02505,Negative,Negative,Mobile App
+REV-02506,Positive,Positive,Mobile App
+REV-02507,Neutral,Neutral,Website
+REV-02508,Positive,Positive,Mobile App
+REV-02509,Positive,Positive,Website
+REV-02510,Negative,Negative,Mobile App
+REV-02511,Positive,Positive,Website
+REV-02512,Neutral,Positive,Mobile App
+REV-02513,Positive,Positive,Mobile App
+REV-02514,Positive,Positive,Website
+REV-02515,Positive,Positive,Mobile App
+REV-02516,Negative,Negative,Mobile App
+REV-02517,Neutral,Neutral,Website
+REV-02518,Positive,Positive,Website
+REV-02519,Positive,Positive,Website
+REV-02520,Positive,Positive,Website
+REV-02521,Negative,Negative,Website
+REV-02522,Negative,Negative,Mobile App
+REV-02523,Neutral,Neutral,Website
+REV-02524,Positive,Positive,Mobile App
+REV-02525,Negative,Negative,Mobile App
+REV-02526,Negative,Negative,Website
+REV-02527,Positive,Neutral,Mobile App
+REV-02528,Negative,Negative,Mobile App
+REV-02529,Positive,Positive,Website
+REV-02530,Positive,Positive,Mobile App
+REV-02531,Positive,Positive,Website
+REV-02532,Negative,Negative,Website
+REV-02533,Negative,Negative,Website
+REV-02534,Positive,Positive,Mobile App
+REV-02535,Positive,Positive,Mobile App
+REV-02536,Positive,Positive,Mobile App
+REV-02537,Negative,Neutral,Mobile App
+REV-02538,Positive,Positive,Website
+REV-02539,Positive,Positive,Mobile App
+REV-02540,Positive,Positive,Website
+REV-02541,Positive,Positive,Mobile App
+REV-02542,Positive,Positive,Mobile App
+REV-02543,Positive,Positive,Mobile App
+REV-02544,Negative,Negative,Mobile App
+REV-02545,Neutral,Negative,Mobile App
+REV-02546,Negative,Negative,Website
+REV-02547,Neutral,Negative,Mobile App
+REV-02548,Neutral,Neutral,Mobile App
+REV-02549,Negative,Negative,Mobile App
+REV-02550,Neutral,Neutral,Mobile App
+REV-02551,Negative,Negative,Website
+REV-02552,Positive,Positive,Mobile App
+REV-02553,Positive,Positive,Website
+REV-02554,Negative,Negative,Mobile App
+REV-02555,Positive,Positive,Website
+REV-02556,Positive,Positive,Website
+REV-02557,Negative,Negative,Website
+REV-02558,Negative,Negative,Website
+REV-02559,Positive,Positive,Website
+REV-02560,Positive,Positive,Mobile App
+REV-02561,Positive,Positive,Website
+REV-02562,Negative,Negative,Mobile App
+REV-02563,Negative,Negative,Website
+REV-02564,Neutral,Positive,Website
+REV-02565,Negative,Negative,Mobile App
+REV-02566,Negative,Negative,Website
+REV-02567,Negative,Negative,Website
+REV-02568,Positive,Positive,Website
+REV-02569,Positive,Positive,Website
+REV-02570,Neutral,Positive,Mobile App
+REV-02571,Positive,Neutral,Website
+REV-02572,Neutral,Neutral,Website
+REV-02573,Neutral,Neutral,Mobile App
+REV-02574,Negative,Negative,Mobile App
+REV-02575,Positive,Positive,Website
+REV-02576,Positive,Positive,Website
+REV-02577,Positive,Positive,Mobile App
+REV-02578,Neutral,Positive,Website
+REV-02579,Positive,Positive,Mobile App
+REV-02580,Negative,Negative,Website
+REV-02581,Positive,Positive,Mobile App
+REV-02582,Positive,Positive,Mobile App
+REV-02583,Neutral,Neutral,Mobile App
+REV-02584,Positive,Positive,Website
+REV-02585,Positive,Neutral,Website
+REV-02586,Negative,Negative,Website
+REV-02587,Positive,Positive,Website
+REV-02588,Negative,Neutral,Mobile App
+REV-02589,Positive,Positive,Mobile App
+REV-02590,Positive,Positive,Mobile App
+REV-02591,Positive,Positive,Website
+REV-02592,Positive,Neutral,Website
+REV-02593,Positive,Positive,Website
+REV-02594,Negative,Negative,Mobile App
+REV-02595,Positive,Positive,Website
+REV-02596,Negative,Negative,Website
+REV-02597,Neutral,Neutral,Mobile App
+REV-02598,Negative,Negative,Mobile App
+REV-02599,Negative,Negative,Website
+REV-02600,Positive,Positive,Mobile App
+REV-02601,Negative,Negative,Website
+REV-02602,Positive,Positive,Mobile App
+REV-02603,Neutral,Neutral,Mobile App
+REV-02604,Negative,Negative,Mobile App
+REV-02605,Positive,Positive,Website
+REV-02606,Negative,Neutral,Website
+REV-02607,Negative,Neutral,Website
+REV-02608,Positive,Positive,Mobile App
+REV-02609,Negative,Negative,Mobile App
+REV-02610,Positive,Neutral,Mobile App
+REV-02611,Negative,Negative,Mobile App
+REV-02612,Negative,Negative,Website
+REV-02613,Positive,Positive,Website
+REV-02614,Neutral,Neutral,Website
+REV-02615,Negative,Negative,Mobile App
+REV-02616,Neutral,Positive,Mobile App
+REV-02617,Negative,Negative,Website
+REV-02618,Positive,Positive,Mobile App
+REV-02619,Neutral,Neutral,Website
+REV-02620,Positive,Positive,Mobile App
+REV-02621,Positive,Positive,Mobile App
+REV-02622,Neutral,Neutral,Website
+REV-02623,Positive,Positive,Website
+REV-02624,Neutral,Negative,Mobile App
+REV-02625,Positive,Positive,Website
+REV-02626,Negative,Negative,Website
+REV-02627,Positive,Positive,Mobile App
+REV-02628,Neutral,Neutral,Mobile App
+REV-02629,Neutral,Negative,Mobile App
+REV-02630,Positive,Positive,Website
+REV-02631,Positive,Positive,Mobile App
+REV-02632,Negative,Negative,Mobile App
+REV-02633,Negative,Negative,Mobile App
+REV-02634,Positive,Positive,Mobile App
+REV-02635,Positive,Neutral,Mobile App
+REV-02636,Positive,Positive,Website
+REV-02637,Positive,Positive,Mobile App
+REV-02638,Positive,Negative,Mobile App
+REV-02639,Positive,Neutral,Website
+REV-02640,Negative,Negative,Mobile App
+REV-02641,Negative,Negative,Mobile App
+REV-02642,Positive,Positive,Website
+REV-02643,Positive,Positive,Mobile App
+REV-02644,Negative,Negative,Website
+REV-02645,Neutral,Neutral,Mobile App
+REV-02646,Positive,Neutral,Website
+REV-02647,Positive,Positive,Website
+REV-02648,Neutral,Neutral,Mobile App
+REV-02649,Neutral,Neutral,Website
+REV-02650,Negative,Negative,Website
+REV-02651,Neutral,Neutral,Mobile App
+REV-02652,Neutral,Neutral,Mobile App
+REV-02653,Negative,Negative,Website
+REV-02654,Positive,Positive,Mobile App
+REV-02655,Neutral,Negative,Website
+REV-02656,Positive,Positive,Website
+REV-02657,Positive,Positive,Mobile App
+REV-02658,Negative,Neutral,Mobile App
+REV-02659,Positive,Positive,Website
+REV-02660,Neutral,Neutral,Mobile App
+REV-02661,Positive,Positive,Mobile App
+REV-02662,Negative,Negative,Website
+REV-02663,Positive,Positive,Website
+REV-02664,Positive,Positive,Website
+REV-02665,Negative,Negative,Website
+REV-02666,Negative,Negative,Website
+REV-02667,Positive,Positive,Website
+REV-02668,Positive,Neutral,Mobile App
+REV-02669,Neutral,Neutral,Website
+REV-02670,Positive,Positive,Mobile App
+REV-02671,Neutral,Neutral,Mobile App
+REV-02672,Positive,Positive,Website
+REV-02673,Negative,Negative,Mobile App
+REV-02674,Positive,Positive,Website
+REV-02675,Negative,Negative,Mobile App
+REV-02676,Neutral,Neutral,Website
+REV-02677,Negative,Negative,Website
+REV-02678,Negative,Negative,Website
+REV-02679,Positive,Positive,Website
+REV-02680,Negative,Negative,Mobile App
+REV-02681,Positive,Positive,Mobile App
+REV-02682,Negative,Neutral,Mobile App
+REV-02683,Neutral,Neutral,Mobile App
+REV-02684,Neutral,Negative,Mobile App
+REV-02685,Negative,Negative,Website
+REV-02686,Negative,Negative,Website
+REV-02687,Neutral,Positive,Website
+REV-02688,Neutral,Negative,Website
+REV-02689,Neutral,Neutral,Website
+REV-02690,Positive,Positive,Mobile App
+REV-02691,Positive,Positive,Website
+REV-02692,Negative,Negative,Website
+REV-02693,Neutral,Neutral,Mobile App
+REV-02694,Positive,Positive,Mobile App
+REV-02695,Positive,Positive,Website
+REV-02696,Positive,Positive,Website
+REV-02697,Neutral,Neutral,Mobile App
+REV-02698,Positive,Positive,Website
+REV-02699,Positive,Positive,Website
+REV-02700,Positive,Positive,Website
+REV-02701,Positive,Positive,Mobile App
+REV-02702,Negative,Negative,Website
+REV-02703,Negative,Negative,Website
+REV-02704,Positive,Positive,Mobile App
+REV-02705,Positive,Positive,Mobile App
+REV-02706,Negative,Neutral,Mobile App
+REV-02707,Negative,Negative,Website
+REV-02708,Negative,Negative,Mobile App
+REV-02709,Negative,Neutral,Website
+REV-02710,Positive,Positive,Mobile App
+REV-02711,Positive,Positive,Website
+REV-02712,Neutral,Neutral,Mobile App
+REV-02713,Neutral,Positive,Website
+REV-02714,Negative,Negative,Website
+REV-02715,Negative,Negative,Mobile App
+REV-02716,Positive,Positive,Mobile App
+REV-02717,Positive,Positive,Website
+REV-02718,Positive,Neutral,Mobile App
+REV-02719,Negative,Negative,Website
+REV-02720,Positive,Positive,Mobile App
+REV-02721,Positive,Positive,Mobile App
+REV-02722,Positive,Positive,Website
+REV-02723,Neutral,Negative,Mobile App
+REV-02724,Neutral,Negative,Mobile App
+REV-02725,Neutral,Neutral,Website
+REV-02726,Negative,Negative,Website
+REV-02727,Negative,Negative,Mobile App
+REV-02728,Negative,Negative,Website
+REV-02729,Neutral,Positive,Mobile App
+REV-02730,Positive,Positive,Mobile App
+REV-02731,Neutral,Neutral,Website
+REV-02732,Negative,Negative,Website
+REV-02733,Positive,Positive,Website
+REV-02734,Positive,Positive,Website
+REV-02735,Positive,Positive,Website
+REV-02736,Positive,Positive,Website
+REV-02737,Positive,Positive,Mobile App
+REV-02738,Positive,Neutral,Mobile App
+REV-02739,Negative,Negative,Website
+REV-02740,Neutral,Positive,Mobile App
+REV-02741,Negative,Negative,Mobile App
+REV-02742,Negative,Negative,Mobile App
+REV-02743,Negative,Positive,Mobile App
+REV-02744,Positive,Positive,Website
+REV-02745,Positive,Positive,Mobile App
+REV-02746,Positive,Positive,Mobile App
+REV-02747,Negative,Positive,Website
+REV-02748,Positive,Positive,Website
+REV-02749,Positive,Positive,Website
+REV-02750,Neutral,Neutral,Website
+REV-02751,Positive,Positive,Mobile App
+REV-02752,Negative,Negative,Website
+REV-02753,Neutral,Neutral,Mobile App
+REV-02754,Positive,Positive,Mobile App
+REV-02755,Negative,Negative,Website
+REV-02756,Neutral,Neutral,Website
+REV-02757,Positive,Positive,Website
+REV-02758,Positive,Positive,Website
+REV-02759,Negative,Negative,Website
+REV-02760,Negative,Negative,Website
+REV-02761,Negative,Neutral,Mobile App
+REV-02762,Positive,Positive,Mobile App
+REV-02763,Neutral,Neutral,Mobile App
+REV-02764,Negative,Neutral,Mobile App
+REV-02765,Positive,Positive,Website
+REV-02766,Positive,Positive,Website
+REV-02767,Negative,Negative,Mobile App
+REV-02768,Positive,Positive,Mobile App
+REV-02769,Positive,Positive,Mobile App
+REV-02770,Negative,Negative,Website
+REV-02771,Negative,Negative,Website
+REV-02772,Positive,Positive,Website
+REV-02773,Neutral,Neutral,Mobile App
+REV-02774,Positive,Neutral,Mobile App
+REV-02775,Neutral,Neutral,Website
+REV-02776,Negative,Negative,Website
+REV-02777,Negative,Negative,Mobile App
+REV-02778,Neutral,Neutral,Mobile App
+REV-02779,Negative,Negative,Website
+REV-02780,Negative,Negative,Mobile App
+REV-02781,Positive,Positive,Website
+REV-02782,Positive,Positive,Website
+REV-02783,Positive,Positive,Mobile App
+REV-02784,Positive,Negative,Mobile App
+REV-02785,Negative,Neutral,Mobile App
+REV-02786,Positive,Positive,Website
+REV-02787,Negative,Negative,Mobile App
+REV-02788,Positive,Positive,Mobile App
+REV-02789,Positive,Positive,Website
+REV-02790,Positive,Positive,Website
+REV-02791,Positive,Positive,Mobile App
+REV-02792,Positive,Positive,Website
+REV-02793,Negative,Neutral,Website
+REV-02794,Neutral,Neutral,Website
+REV-02795,Positive,Positive,Mobile App
+REV-02796,Negative,Negative,Mobile App
+REV-02797,Positive,Positive,Website
+REV-02798,Positive,Positive,Website
+REV-02799,Negative,Negative,Website
+REV-02800,Positive,Positive,Mobile App
+REV-02801,Positive,Positive,Website
+REV-02802,Positive,Positive,Website
+REV-02803,Positive,Positive,Mobile App
+REV-02804,Positive,Positive,Website
+REV-02805,Positive,Neutral,Mobile App
+REV-02806,Positive,Positive,Mobile App
+REV-02807,Negative,Positive,Mobile App
+REV-02808,Neutral,Neutral,Website
+REV-02809,Positive,Positive,Website
+REV-02810,Negative,Negative,Mobile App
+REV-02811,Positive,Positive,Website
+REV-02812,Positive,Positive,Mobile App
+REV-02813,Negative,Negative,Website
+REV-02814,Positive,Neutral,Mobile App
+REV-02815,Positive,Neutral,Mobile App
+REV-02816,Neutral,Negative,Website
+REV-02817,Negative,Negative,Website
+REV-02818,Negative,Neutral,Website
+REV-02819,Neutral,Neutral,Website
+REV-02820,Positive,Positive,Mobile App
+REV-02821,Negative,Negative,Mobile App
+REV-02822,Positive,Positive,Website
+REV-02823,Negative,Negative,Website
+REV-02824,Neutral,Neutral,Mobile App
+REV-02825,Positive,Positive,Website
+REV-02826,Positive,Positive,Website
+REV-02827,Negative,Negative,Website
+REV-02828,Neutral,Neutral,Website
+REV-02829,Negative,Negative,Mobile App
+REV-02830,Neutral,Positive,Mobile App
+REV-02831,Positive,Positive,Website
+REV-02832,Negative,Negative,Mobile App
+REV-02833,Negative,Negative,Website
+REV-02834,Neutral,Neutral,Website
+REV-02835,Positive,Positive,Website
+REV-02836,Positive,Positive,Mobile App
+REV-02837,Negative,Negative,Mobile App
+REV-02838,Positive,Positive,Mobile App
+REV-02839,Neutral,Neutral,Mobile App
+REV-02840,Neutral,Neutral,Mobile App
+REV-02841,Positive,Positive,Website
+REV-02842,Positive,Neutral,Website
+REV-02843,Positive,Negative,Mobile App
+REV-02844,Positive,Positive,Mobile App
+REV-02845,Neutral,Neutral,Mobile App
+REV-02846,Positive,Positive,Website
+REV-02847,Negative,Negative,Mobile App
+REV-02848,Positive,Positive,Website
+REV-02849,Neutral,Neutral,Website
+REV-02850,Positive,Positive,Mobile App
+REV-02851,Negative,Neutral,Website
+REV-02852,Negative,Neutral,Website
+REV-02853,Positive,Positive,Mobile App
+REV-02854,Negative,Negative,Website
+REV-02855,Positive,Positive,Mobile App
+REV-02856,Negative,Negative,Website
+REV-02857,Negative,Negative,Mobile App
+REV-02858,Negative,Negative,Mobile App
+REV-02859,Negative,Negative,Website
+REV-02860,Positive,Positive,Mobile App
+REV-02861,Negative,Negative,Website
+REV-02862,Positive,Negative,Website
+REV-02863,Positive,Positive,Mobile App
+REV-02864,Neutral,Neutral,Website
+REV-02865,Positive,Positive,Mobile App
+REV-02866,Positive,Positive,Website
+REV-02867,Positive,Positive,Website
+REV-02868,Negative,Negative,Mobile App
+REV-02869,Neutral,Neutral,Website
+REV-02870,Positive,Positive,Website
+REV-02871,Positive,Positive,Website
+REV-02872,Positive,Positive,Website
+REV-02873,Neutral,Neutral,Website
+REV-02874,Positive,Positive,Website
+REV-02875,Neutral,Neutral,Website
+REV-02876,Neutral,Positive,Website
+REV-02877,Negative,Negative,Mobile App
+REV-02878,Positive,Positive,Website
+REV-02879,Negative,Negative,Website
+REV-02880,Neutral,Neutral,Mobile App
+REV-02881,Positive,Positive,Mobile App
+REV-02882,Negative,Negative,Mobile App
+REV-02883,Negative,Positive,Website
+REV-02884,Negative,Negative,Mobile App
+REV-02885,Positive,Positive,Mobile App
+REV-02886,Positive,Positive,Website
+REV-02887,Neutral,Positive,Website
+REV-02888,Positive,Positive,Mobile App
+REV-02889,Positive,Positive,Mobile App
+REV-02890,Neutral,Neutral,Website
+REV-02891,Positive,Positive,Website
+REV-02892,Positive,Positive,Website
+REV-02893,Positive,Positive,Website
+REV-02894,Negative,Negative,Website
+REV-02895,Positive,Positive,Mobile App
+REV-02896,Positive,Positive,Website
+REV-02897,Negative,Negative,Website
+REV-02898,Neutral,Positive,Website
+REV-02899,Negative,Negative,Website
+REV-02900,Negative,Negative,Website
+REV-02901,Positive,Positive,Mobile App
+REV-02902,Negative,Negative,Website
+REV-02903,Neutral,Neutral,Mobile App
+REV-02904,Positive,Neutral,Website
+REV-02905,Negative,Negative,Mobile App
+REV-02906,Positive,Positive,Mobile App
+REV-02907,Negative,Negative,Website
+REV-02908,Neutral,Neutral,Website
+REV-02909,Neutral,Neutral,Website
+REV-02910,Negative,Negative,Website
+REV-02911,Negative,Neutral,Website
+REV-02912,Positive,Positive,Mobile App
+REV-02913,Positive,Positive,Website
+REV-02914,Negative,Negative,Website
+REV-02915,Positive,Neutral,Mobile App
+REV-02916,Positive,Positive,Website
+REV-02917,Positive,Positive,Mobile App
+REV-02918,Neutral,Neutral,Website
+REV-02919,Neutral,Neutral,Mobile App
+REV-02920,Neutral,Negative,Website
+REV-02921,Positive,Positive,Mobile App
+REV-02922,Positive,Positive,Mobile App
+REV-02923,Negative,Negative,Website
+REV-02924,Neutral,Neutral,Website
+REV-02925,Positive,Positive,Website
+REV-02926,Positive,Positive,Mobile App
+REV-02927,Positive,Positive,Mobile App
+REV-02928,Positive,Positive,Mobile App
+REV-02929,Neutral,Positive,Website
+REV-02930,Positive,Neutral,Website
+REV-02931,Positive,Positive,Mobile App
+REV-02932,Negative,Negative,Website
+REV-02933,Positive,Positive,Mobile App
+REV-02934,Positive,Positive,Website
+REV-02935,Negative,Negative,Website
+REV-02936,Positive,Positive,Mobile App
+REV-02937,Positive,Positive,Website
+REV-02938,Positive,Positive,Website
+REV-02939,Negative,Negative,Website
+REV-02940,Negative,Negative,Website
+REV-02941,Positive,Positive,Website
+REV-02942,Negative,Negative,Mobile App
+REV-02943,Positive,Positive,Website
+REV-02944,Positive,Positive,Mobile App
+REV-02945,Negative,Negative,Website
+REV-02946,Positive,Positive,Website
+REV-02947,Positive,Negative,Mobile App
+REV-02948,Neutral,Neutral,Mobile App
+REV-02949,Positive,Positive,Website
+REV-02950,Positive,Positive,Website
+REV-02951,Positive,Positive,Mobile App
+REV-02952,Positive,Positive,Mobile App
+REV-02953,Neutral,Neutral,Mobile App
+REV-02954,Positive,Neutral,Mobile App
+REV-02955,Positive,Positive,Website
+REV-02956,Positive,Positive,Website
+REV-02957,Positive,Positive,Website
+REV-02958,Negative,Negative,Website
+REV-02959,Positive,Positive,Website
+REV-02960,Negative,Negative,Mobile App
+REV-02961,Neutral,Positive,Mobile App
+REV-02962,Neutral,Neutral,Mobile App
+REV-02963,Positive,Positive,Website
+REV-02964,Positive,Positive,Mobile App
+REV-02965,Positive,Positive,Website
+REV-02966,Positive,Positive,Website
+REV-02967,Positive,Neutral,Website
+REV-02968,Positive,Positive,Mobile App
+REV-02969,Neutral,Neutral,Website
+REV-02970,Neutral,Neutral,Website
+REV-02971,Negative,Negative,Mobile App
+REV-02972,Positive,Positive,Website
+REV-02973,Positive,Positive,Mobile App
+REV-02974,Neutral,Neutral,Website
+REV-02975,Negative,Neutral,Mobile App
+REV-02976,Positive,Neutral,Website
+REV-02977,Negative,Negative,Website
+REV-02978,Positive,Positive,Mobile App
+REV-02979,Positive,Positive,Website
+REV-02980,Neutral,Neutral,Mobile App
+REV-02981,Negative,Negative,Website
+REV-02982,Positive,Positive,Mobile App
+REV-02983,Positive,Neutral,Website
+REV-02984,Positive,Positive,Website
+REV-02985,Positive,Negative,Website
+REV-02986,Negative,Negative,Mobile App
+REV-02987,Positive,Positive,Mobile App
+REV-02988,Positive,Positive,Mobile App
+REV-02989,Positive,Positive,Mobile App
+REV-02990,Negative,Negative,Mobile App
+REV-02991,Positive,Positive,Website
+REV-02992,Positive,Positive,Website
+REV-02993,Neutral,Neutral,Website
+REV-02994,Negative,Negative,Website
+REV-02995,Positive,Positive,Website
+REV-02996,Negative,Negative,Mobile App
+REV-02997,Neutral,Neutral,Website
+REV-02998,Negative,Negative,Mobile App
+REV-02999,Positive,Positive,Website

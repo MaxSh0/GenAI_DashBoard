@@ -1,0 +1,7 @@
+{
+    "example_model_metrics.py": "Метрики ИИ модели",
+    "example_token_usage_logs.py": "Мониторинг производительности LLM (Latency vs Tokens)",
+    "example_sentiment_classification_logs.py": "Матрица ошибок (Confusion Matrix)",
+    "example_support_embeddings_2d.py": "Визуализация Эмбеддингов (Семантический поиск)",
+    "example_global_user_messages.py": "География пользователей и сообщений (Bubble Map)"
+}
