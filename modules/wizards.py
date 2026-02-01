@@ -55,9 +55,40 @@ def wizard_create_chart():
     @st.fragment
     def theme_manager_fragment():
         # 1. Загрузка тем
+        # Палитры для графиков (Брендовые и Природные)
         themes = load_json(THEMES_CONFIG_FILE, {
-            "ВсеИнструменты (Default)": {"colors": ["#EE1C25", "#231F20", "#FFFFFF"], "dark_mode": False},
-            "Океан (Blue)": {"colors": ["#0077B6", "#00B4D8", "#90E0EF"], "dark_mode": True}
+            "Лес (Nature)": {
+                "colors": ["#2D6A4F", "#52B788", "#D8F3DC"], # Темно-зеленый, Мятный, Бледно-зеленый
+                "dark_mode": True
+            },
+            "Океан (Blue)": {
+                "colors": ["#0077B6", "#00B4D8", "#90E0EF"], # Глубокий синий, Голубой, Светло-голубой
+                "dark_mode": True
+            },
+            "Закат (Vibes)": {
+                "colors": ["#7209B7", "#F72585", "#FFCC00"], # Фиолетовый, Розовый, Желтый
+                "dark_mode": True
+            },
+            "ВсеИнструменты": {
+                "colors": ["#EE1C25", "#231F20", "#eae7e7"], # Красный, Черный, Серый
+                "dark_mode": False
+            },
+            "VK": {
+                "colors": ["#0035ff", "#000000", "#99A2AD"], # VK Синий, Черный, Серый
+                "dark_mode": False
+            },
+            "Сбер": {
+                "colors": ["#21A038", "#1A1A1A", "#85C441"], # СберЗеленый, Черный, Светло-зеленый
+                "dark_mode": False
+            },
+            "Яндекс": {
+                "colors": ["#FC3F1D", "#FFCC00", "#000000"], # Красный, Желтый, Черный
+                "dark_mode": False
+            },
+            "Т-Банк": {
+                "colors": ["#FFDD2D", "#FFFFFF", "#000000"], # Желтый, Белый, Серый (для темной темы)
+                "dark_mode": True
+            }
         })
 
         theme_names = list(themes.keys())
