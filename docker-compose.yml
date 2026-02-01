@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    container_name: b2b-dashboard
+    container_name: genAI-dashboard
     build: .
     ports:
       - "8501:8501"

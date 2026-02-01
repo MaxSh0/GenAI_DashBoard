@@ -29,7 +29,19 @@ if exist requirements.txt (
     echo ⚠️ requirements.txt not found.
 )
 
-:: 4. Запуск
+:: 4. Проверка user_token.json
+if not exist user_token.json (
+    echo 🔑 Creating empty user_token.json...
+    echo {} > user_token.json
+)
+
+:: 5. Проверка client_secret.json
+if not exist client_secret.json (
+    echo 🔑 Creating empty client_secret.json...
+    echo {} > client_secret.json
+)
+
+:: 6. Запуск
 echo 🟢 Running Streamlit...
 streamlit run app.py
 

@@ -30,6 +30,18 @@ else
     echo "⚠️ Файл requirements.txt не найден!"
 fi
 
-# 5. Запуск приложения
+# 5. Проверка user_token.json (Лечение ошибки Docker)
+if [ ! -f "user_token.json" ]; then
+    echo "🔑 Создаем пустой user_token.json..."
+    echo "{}" > user_token.json
+fi
+
+# 6. Проверка client_secret.json (Лечение ошибки Docker)
+if [ ! -f "client_secret.json" ]; then
+    echo "🔑 Создаем пустой client_secret.json..."
+    echo "{}" > client_secret.json
+fi
+
+# 6. Запуск приложения
 echo "🟢 Запускаем Streamlit..."
 streamlit run app.py

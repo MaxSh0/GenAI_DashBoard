@@ -36,6 +36,24 @@
     ```
 
 2.  **Подготовьте конфигурацию (ВАЖНО!):**
+    Docker требует наличия конфигурационных файлов перед запуском, иначе он создаст вместо них папки, и возникнет ошибка.
+    
+    **macOS / Linux / PowerShell:**
+    ```bash
+    cp client_secret.example.json client_secret.json
+    cp user_token.example.json user_token.json
+    ```
+
+    **Windows (CMD):**
+    ```cmd
+    copy client_secret.example.json client_secret.json
+    copy user_token.example.json user_token.json
+    ```
+    *(Затем отредактируйте `client_secret.json`, вставив свои реальные ключи через интерфейс приложения)*
+    *(`user_token.json` подтянется сам при первой авторизации в google)*
+    
+
+    
     Перед запуском Docker необходимо создать файл `client_secret.json`, иначе Docker создаст вместо него папку, и приложение не запустится.
     
     *Если у вас пока нет реальных ключей Google:*
@@ -44,7 +62,7 @@
     cp client_secret.example.json client_secret.json
     ```
 
-3.  **Запустите контейнер:**
+4.  **Запустите контейнер:**
     ```bash
     docker compose up --build
     ```

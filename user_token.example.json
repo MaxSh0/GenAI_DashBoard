@@ -1,0 +1,1 @@
+{"token": "aaaaa-sssss", "refresh_token": "1//cccc", "token_uri": "https://oauth2.googleapis.com/token", "client_id": "eeeee.apps.googleusercontent.com", "client_secret": "Gcz", "scopes": ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.metadata.readonly"], "universe_domain": "googleapis.com", "account": "", "expiry": "2184-32-69T16:41:31Z"}
