@@ -305,7 +305,14 @@ def wizard_create_chart():
                 else:
                     with st.spinner(f"🤖 {sel_prov} ({sel_model}) пишет код..."):
                         # Генерируем
-                        system_msg = "You are a Senior Python Developer. Write ONLY Python code."
+                        system_msg = (
+                        "Ты Senior Python Developer. Ты меняешь код Streamlit/Plotly по запросу. "
+                        "Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна.\n"
+                        "ВАЖНО ПО PLOTLY 5.X:\n"
+                        "1. НИКОГДА не используй устаревшие параметры: 'titlefont', 'tickfont' внутри осей.\n"
+                        "2. Правильный синтаксис шрифтов: dict(title=dict(text='Name', font=dict(size=14))).\n"
+                        "3. Вместо 'margin' в layout используй update_layout(margin=dict(l=..., r=...))."
+                    )
                         success, result_text = ask_llm(sel_prov, sel_model, system_msg, final_prompt)
                         
                         if success:

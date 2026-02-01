@@ -534,7 +534,13 @@ with tab_charts:
                             f"### ДАННЫЕ:\n{data_context}\n\n"
                             f"### ЗАПРОС ПОЛЬЗОВАТЕЛЯ:\n\"{ai_request}\"\n"
                         )
-                        system_msg = "Ты Senior Python Developer. Ты меняешь код Streamlit/Plotly по запросу. Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна."
+                        system_msg = ("Ты Senior Python Developer. Ты меняешь код Streamlit/Plotly по запросу. "
+    "Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна.\n"
+    "ВАЖНО ПО PLOTLY 5.X:\n"
+    "1. НИКОГДА не используй устаревшие параметры: 'titlefont', 'tickfont' внутри осей.\n"
+    "2. Правильный синтаксис шрифтов: dict(title=dict(text='Name', font=dict(size=14))).\n"
+    "3. Вместо 'margin' в layout используй update_layout(margin=dict(l=..., r=...))."
+)
 
                         with st.spinner(f"🤖 {r_prov} переписывает код..."):
                             success, result_text = ask_llm(r_prov, r_mod, system_msg, refactor_prompt)
@@ -545,9 +551,18 @@ with tab_charts:
                                 elif "```" in new_code: new_code = new_code.split("```")[1]
                                 new_code = new_code.strip()
                                 
-                                with open(fpath, "w", encoding="utf-8") as f: f.write(new_code)
+                                # 1. Пишем в файл
+                                with open(fpath, "w", encoding="utf-8") as f: 
+                                    f.write(new_code)
+                                    f.flush()
+                                    os.fsync(f.fileno())
+                                    
+                                editor_key = f"ed_{fname}"
+                                if editor_key in st.session_state:
+                                    del st.session_state[editor_key]
+                                
                                 st.toast("✨ Готово!")
-                                time.sleep(1)
+                                time.sleep(0.5)
                                 st.rerun()
                             else:
                                 st.error(f"Ошибка AI: {result_text}")
