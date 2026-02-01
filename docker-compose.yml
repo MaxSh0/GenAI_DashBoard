@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: b2b-dashboard
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+      - ./charts:/app/charts
+      - ./handlers:/app/handlers
+
+      - ./client_secret.json:/app/client_secret.json
+      
+      # --- Сохранение сессии ---
+      - ./user_token.json:/app/user_token.json
+      
+    restart: unless-stopped

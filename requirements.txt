@@ -1,0 +1,30 @@
+# --- Core UI ---
+streamlit>=1.30.0
+streamlit-code-editor    # Для редактора кода (code_editor)
+
+# --- Data Processing ---
+pandas
+numpy
+openpyxl                 # Обязательно для чтения .xlsx файлов (pd.read_excel)
+
+# --- Visualization ---
+plotly                   # Для графиков (plotly.express, graph_objects)
+
+# --- Google Auth & Sheets ---
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+gspread                  # Для коннектора Google Sheets
+
+# --- AI & LLM ---
+openai                   # Для работы с ChatGPT/DeepSeek (через OpenAI API format)
+google-generativeai      # Для работы с Gemini
+
+# --- Big Data Connectors ---
+ytsaurus-client          # Для работы с YTsaurus (yt.wrapper)
+sqlalchemy             # (Опционально) Если будет Superset/SQL
+psycopg2-binary        # (Опционально) Если будет PostgreSQL
+
+# --- Utilities ---
+requests
+watchdog                 # Для авто-перезагрузки Streamlit при изменении файлов

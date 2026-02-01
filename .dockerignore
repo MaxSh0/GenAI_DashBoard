@@ -1,0 +1,10 @@
+.git
+.gitignore
+.dockerignore
+.venv
+__pycache__
+*.pyc
+.DS_Store
+# Секреты не копируем внутрь образа (они будут подключаться снаружи)
+client_secret.json
+user_token.json
