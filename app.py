@@ -21,7 +21,7 @@ from modules.auth import is_authenticated, logout_user, login_redirect, check_au
 
 # --- INIT ---
 titles_conf_init = load_json(TITLES_CONFIG_FILE, {})
-APP_TITLE = titles_conf_init.get("app_title", "B2B Отчетность")
+APP_TITLE = titles_conf_init.get("app_title", "GenAI DashBoard v0.1")
 
 # --- 2. INIT ---
 st.set_page_config(page_title=APP_TITLE, layout="wide")
@@ -69,12 +69,12 @@ pages_conf = load_json(PAGES_CONFIG_FILE, {})
 titles_conf = load_json(TITLES_CONFIG_FILE, {}) 
 
 if "General" in pages_conf:
-    pages_conf["B2B Дашборд"] = pages_conf.pop("General")
+    pages_conf["Главная страница"] = pages_conf.pop("General")
     save_json(PAGES_CONFIG_FILE, pages_conf)
 
 if not pages_conf:
     all_charts = sorted([f for f in os.listdir(CHARTS_FOLDER) if f.endswith(".py")])
-    pages_conf = {"B2B Дашборд": all_charts}
+    pages_conf = {"Главная страница": all_charts}
     save_json(PAGES_CONFIG_FILE, pages_conf)
 
 # --- HELPER: FORMAT TITLE ---
