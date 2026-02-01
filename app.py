@@ -82,18 +82,16 @@ def get_chart_display_name(filename):
     return titles_conf.get(filename, filename)
 
 # ==================== SIDEBAR ====================
+# ==================== SIDEBAR ====================
 with st.sidebar:
     # --- 1. ВЫБОР ДАШБОРДА ---
     st.header("📑 Дашборды")
     
     page_names = list(pages_conf.keys())
-    if "B2B Дашборд" in page_names:
-        page_names.remove("B2B Дашборд")
-        page_names.insert(0, "B2B Дашборд")
     
+    # Логика выбора страницы через URL или по умолчанию
     query_params = st.query_params
     default_index = 0
-    
     if "page" in query_params:
         url_page = query_params["page"]
         if url_page in page_names:
@@ -106,15 +104,44 @@ with st.sidebar:
         label_visibility="collapsed"
     )
     
+    # Обновляем URL
     st.query_params["page"] = current_page
     
-    c_p1, c_p2 = st.columns([0.85, 0.15], vertical_alignment="bottom")
-    c_p1.caption(f"Графиков: {len(pages_conf.get(current_page, []))}")
-    if c_p2.button("⚙️", help="Настроить страницы"):
+    # --- ПАНЕЛЬ УПРАВЛЕНИЯ СТРАНИЦЕЙ (Rename + Settings) ---
+    c_info, c_ren, c_set = st.columns([0.6, 0.2, 0.2], vertical_alignment="center")
+    
+    # 1. Информация о кол-ве графиков
+    c_info.caption(f"Графиков: {len(pages_conf.get(current_page, []))}")
+
+    # 2. Кнопка ПЕРЕИМЕНОВАТЬ (✏️)
+    with c_ren:
+        with st.popover("✏️", help="Переименовать эту страницу", use_container_width=True):
+            st.write(f"**Переименовать**")
+            new_page_name = st.text_input("Название:", value=current_page, key="new_page_name_input")
+            
+            if st.button("Сохранить", type="primary", use_container_width=True):
+                if not new_page_name:
+                    st.error("Имя не может быть пустым")
+                elif new_page_name in pages_conf and new_page_name != current_page:
+                    st.error("Такое имя уже есть!")
+                elif new_page_name == current_page:
+                    st.info("Имя не изменилось")
+                else:
+                    # Магия смены ключа в словаре
+                    pages_conf[new_page_name] = pages_conf.pop(current_page)
+                    save_json(PAGES_CONFIG_FILE, pages_conf)
+                    
+                    # Обновляем URL и перезагружаем
+                    st.query_params["page"] = new_page_name
+                    st.toast(f"✅ Переименовано в '{new_page_name}'")
+                    time.sleep(0.5)
+                    st.rerun()
+
+    # 3. Кнопка НАСТРОЙКИ (⚙️) - управление составом графиков
+    if c_set.button("⚙️", help="Добавить/Удалить графики на странице", use_container_width=True):
         wizard_manage_pages()
 
     st.divider()
-
     # --- 2. ДАННЫЕ (NEW DESIGN: CONTROL CENTER) ---
     # --- 2. ДАННЫЕ (SCROLLABLE LIST) ---
     if GUIDE_URL: st.link_button("📘 Инструкция", GUIDE_URL, use_container_width=True)
