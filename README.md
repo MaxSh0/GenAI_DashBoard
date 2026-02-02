@@ -121,7 +121,7 @@ GenAI_DashBoard/
 Если у вас возникли проблемы при запуске, есть идеи по улучшению или вы нашли баг, пожалуйста, свяжитесь с нами:
 
 * **Project Manager, Testing, Developer**
-* 📩 [мdarya.markarova.v@gmail.com](mailto:мdarya.markarova.v@gmail.com)
+* 📩 [darya.markarova.v@gmail.com](mailto:darya.markarova.v@gmail.com)
 
 
 * **Developer, AI Tools**
