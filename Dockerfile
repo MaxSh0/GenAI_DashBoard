@@ -11,10 +11,11 @@ COPY client_secret.example.json /app/client_secret.example.json
 
 # Копируем скрипт инициализации
 COPY entrypoint.sh /app/entrypoint.sh
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Копируем весь код
 COPY . .
+
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # ВАЖНО: Указываем entrypoint
 ENTRYPOINT ["/bin/bash", "/app/entrypoint.sh"]
