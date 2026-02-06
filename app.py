@@ -451,6 +451,8 @@ st.title(f"📊 {current_page}")
 
 tab_charts, tab_etl = st.tabs(["📈 Просмотр Графиков", "🛠️ Редактор ETL (Обработчики)"])
 
+
+
 # --- TAB 1: CHARTS ---
 with tab_charts:
     if not sel_charts: 
@@ -464,7 +466,29 @@ with tab_charts:
         st.markdown("---")
         display_name = get_chart_display_name(fname)
         
-        c_title, c_edit, c_ai, c_del = st.columns([0.76, 0.08, 0.08, 0.08], vertical_alignment="center")
+        # [SYNC FIX 1] Инициализируем счетчик версий для принудительного обновления редактора
+        ver_key = f"ver_{fname}"
+        if ver_key not in st.session_state: st.session_state[ver_key] = 0
+        
+        # [SYNC FIX 2] Ключ редактора теперь зависит от версии. 
+        # Если версия изменится (после AI или Undo), создастся НОВЫЙ редактор с новым текстом.
+        editor_key = f"ed_{fname}_{st.session_state[ver_key]}"
+
+        # Определяем тему
+        is_dark = st.session_state.get("wiz_active_dark", True)
+        current_theme = "plotly_dark" if is_dark else "plotly_white"
+
+        # 1. ЗАГРУЗКА МОДУЛЯ
+        try:
+            spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+        except Exception as e:
+            st.error(f"Ошибка загрузки модуля {fname}: {e}")
+            continue
+
+        # 2. ИНТЕРФЕЙС
+        c_title, c_edit, c_ai, c_exp, c_del = st.columns([0.68, 0.08, 0.08, 0.08, 0.08], vertical_alignment="center")
         
         with c_title: st.subheader(f"📌 {display_name}")
             
@@ -476,7 +500,11 @@ with tab_charts:
                     save_json(TITLES_CONFIG_FILE, titles_conf)
                     st.rerun()
 
-        # --- AI REFACTORING (УНИВЕРСАЛЬНЫЙ) ---
+        # ЗАГОТОВКА ПОД КНОПКУ ЭКСПОРТА
+        with c_exp:
+            export_placeholder = st.empty()
+
+        # --- AI REFACTORING ---
         with c_ai:
             has_backup = fname in st.session_state.chart_backups
             ai_icon = "✨"
@@ -487,6 +515,10 @@ with tab_charts:
                         old_code = st.session_state.chart_backups[fname]
                         with open(fpath, "w", encoding="utf-8") as f: f.write(old_code)
                         del st.session_state.chart_backups[fname]
+                        
+                        # [SYNC FIX 3] Увеличиваем версию, чтобы редактор обновился
+                        st.session_state[ver_key] += 1
+                        
                         st.toast("✅ Изменения отменены!")
                         time.sleep(0.5)
                         st.rerun()
@@ -494,15 +526,12 @@ with tab_charts:
 
                 st.write(f"**AI Рефакторинг: {display_name}**")
                 
-                # ВЫБОР МОДЕЛИ ДЛЯ РЕФАКТОРИНГА
                 providers = get_providers()
                 if not providers:
                     st.error("Нет AI интеграций!")
                     llm_ok = False
                 else:
                     llm_ok = True
-                    # Берем первую попавшуюся или последнюю выбранную (упростим до первой попавшейся для компактности)
-                    # Или дадим выбор
                     rp_names = list(providers.keys())
                     r_prov = st.selectbox("Провайдер", rp_names, key=f"r_prov_{fname}", label_visibility="collapsed")
                     r_models = providers[r_prov]["models"]
@@ -519,6 +548,7 @@ with tab_charts:
                             st.session_state.chart_backups[fname] = current_code
                         except: current_code = ""
 
+                        # Данные
                         data_context = "Нет данных"
                         try:
                             linked_files = chart_config.get(fname, [])
@@ -534,13 +564,10 @@ with tab_charts:
                             f"### ДАННЫЕ:\n{data_context}\n\n"
                             f"### ЗАПРОС ПОЛЬЗОВАТЕЛЯ:\n\"{ai_request}\"\n"
                         )
-                        system_msg = ("Ты Senior Python Developer. Ты меняешь код Streamlit/Plotly по запросу. "
-    "Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна.\n"
-    "ВАЖНО ПО PLOTLY 5.X:\n"
-    "1. НИКОГДА не используй устаревшие параметры: 'titlefont', 'tickfont' внутри осей.\n"
-    "2. Правильный синтаксис шрифтов: dict(title=dict(text='Name', font=dict(size=14))).\n"
-    "3. Вместо 'margin' в layout используй update_layout(margin=dict(l=..., r=...))."
-)
+                        
+                        system_msg = ("Ты Senior Python Developer. "
+                                      "Верни ТОЛЬКО валидный Python код модуля (def render). "
+                                      "ВАЖНО: В конце функции верни объект `fig`.")
 
                         with st.spinner(f"🤖 {r_prov} переписывает код..."):
                             success, result_text = ask_llm(r_prov, r_mod, system_msg, refactor_prompt)
@@ -551,16 +578,14 @@ with tab_charts:
                                 elif "```" in new_code: new_code = new_code.split("```")[1]
                                 new_code = new_code.strip()
                                 
-                                # 1. Пишем в файл
                                 with open(fpath, "w", encoding="utf-8") as f: 
                                     f.write(new_code)
                                     f.flush()
                                     os.fsync(f.fileno())
-                                    
-                                editor_key = f"ed_{fname}"
-                                if editor_key in st.session_state:
-                                    del st.session_state[editor_key]
                                 
+                                # [SYNC FIX 4] Увеличиваем версию, чтобы редактор подхватил НОВЫЙ код из файла
+                                st.session_state[ver_key] += 1
+                                    
                                 st.toast("✨ Готово!")
                                 time.sleep(0.5)
                                 st.rerun()
@@ -580,6 +605,7 @@ with tab_charts:
                     save_json(PAGES_CONFIG_FILE, p_conf)
                     st.rerun()
 
+        # --- CODE EDITOR ---
         code_content = ""
         file_read_error = False
         
@@ -593,25 +619,57 @@ with tab_charts:
 
         with st.expander(f"Редактировать код: {display_name}"):
             try:
-                res = code_editor(code_content, lang="python", height=[8, 15], key=f"ed_{fname}", buttons=[{"name": "Save", "feather": "Save", "hasText": True, "commands": ["submit"]}])
+                # [SYNC FIX 5] Используем динамический editor_key
+                res = code_editor(code_content, lang="python", height=[8, 15], key=editor_key, buttons=[{"name": "Save", "feather": "Save", "hasText": True, "commands": ["submit"]}])
+                
                 if res['type'] == "submit" and res['text'] != code_content:
                     with open(fpath, "w", encoding="utf-8") as f: f.write(res['text'])
+                    
+                    # При ручном сохранении тоже полезно обновить версию, чтобы синхронизировать состояние
+                    st.session_state[ver_key] += 1
                     st.rerun()
             except Exception as e: st.warning(f"Ошибка редактора: {e}")
 
+        # --- ФИНАЛЬНЫЙ РЕНДЕР И ЭКСПОРТ ---
+        current_fig = None
+        
         if "st.set_page_config" in code_content:
             st.error("Это не модуль, а приложение! Убери `st.set_page_config`.")
         else:
             try:
-                spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
-                mod = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(mod)
-                if hasattr(mod, "render"):
+                if mod and hasattr(mod, "render"):
                     source_files_paths = [os.path.join(DATA_FOLDER, f) for f in chart_config.get(fname, [])]
-                    mod.render(source_files_paths)
+                    
+                    # УМНЫЙ ВЫЗОВ
+                    import inspect
+                    sig = inspect.signature(mod.render)
+                    call_args = {"files": source_files_paths}
+                    
+                    if "chart_key" in sig.parameters: call_args["chart_key"] = fname
+                    if "theme" in sig.parameters: call_args["theme"] = current_theme
+                    if "return_fig" in sig.parameters: call_args["return_fig"] = False 
+
+                    current_fig = mod.render(**call_args)
+                    
                 else: st.warning("Нет функции `render(files)`.")
             except Exception as e: st.error(f"Ошибка выполнения: {e}")
-            
+
+        # --- НАПОЛНЕНИЕ КНОПКИ ЭКСПОРТА ---
+        if current_fig:
+            try:
+                from modules.utils import ChartExporter
+                with export_placeholder:
+                    with st.popover("📦", use_container_width=True):
+                        html_data = ChartExporter.export_to_html(current_fig, app_theme_is_dark=is_dark)
+                        st.download_button(
+                            label="Скачать HTML", 
+                            data=html_data, 
+                            file_name=f"{fname[:-3]}.html",
+                            mime="text/html",
+                            key=f"dl_btn_{fname}"
+                        )
+            except ImportError:
+                pass
 # --- TAB 2: ETL EDITOR ---
 with tab_etl:
     st.write("🛠️ **Редактор скриптов обработки (ETL)**")
