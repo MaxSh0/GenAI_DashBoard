@@ -3,6 +3,7 @@ import os
 import glob
 import importlib.util
 import datetime
+import random
 import time
 import concurrent.futures
 from code_editor import code_editor
@@ -14,6 +15,7 @@ from modules.settings import *
 from modules.utils import load_json, save_json
 from modules.data_loader import sync_single_source
 from modules.wizards import wizard_create_chart, wizard_manage_sources, wizard_manage_pages, wizard_manage_llm
+from modules.io_manager import BundleManager
 
 # !!! НОВЫЕ ИМПОРТЫ ДЛЯ ИНТЕГРАЦИЙ !!!
 from modules.llm_manager import get_providers, ask_llm
@@ -276,7 +278,19 @@ with st.sidebar:
         label_visibility="collapsed",
         format_func=get_chart_display_name 
     )
-
+    with st.expander("📥 Импорт пакетов (.geb)"):
+        uploaded_geb = st.file_uploader("Загрузить файл", type=["geb", "zip"], label_visibility="collapsed")
+        if uploaded_geb:
+            if st.button("Распаковать и установить", use_container_width=True):
+                with st.spinner("Установка..."):
+                    success, msg = BundleManager.import_bundle(uploaded_geb, target_page=current_page)
+                    if success:
+                        st.success("Готово!")
+                        st.info(msg)
+                        time.sleep(2)
+                        st.rerun()
+                    else:
+                        st.error(msg)
     with st.expander("📂 Файлы и Связи"):
         st.write("**Файлы данных:**")
         up = st.file_uploader("Upload", type=["csv", "xlsx"], label_visibility="collapsed")
@@ -357,13 +371,19 @@ with st.sidebar:
         conf = load_json(CONFIG_FILE, {})
         data_files = [os.path.basename(f) for f in glob.glob(os.path.join(DATA_FOLDER, "*"))]
         changed = False
-        for ch in sel_charts:
+        
+        # [FIX] Добавляем i (индекс), чтобы ключи были уникальными: key=f"s_{ch}_{i}"
+        for i, ch in enumerate(sel_charts):
             cur = [f for f in conf.get(ch, []) if f in data_files]
             readable_name = get_chart_display_name(ch)
-            sel = st.multiselect(f"Для '{readable_name}'", data_files, default=cur, key=f"s_{ch}")
+            
+            # Используем уникальный ключ
+            sel = st.multiselect(f"Для '{readable_name}'", data_files, default=cur, key=f"s_{ch}_{i}")
+            
             if sel != conf.get(ch, []):
                 conf[ch] = sel
                 changed = True
+                
         if changed: save_json(CONFIG_FILE, conf)
 
     # --- 5. УНИВЕРСАЛЬНЫЙ AI ЧАТ (Вместо Legacy Gemini) ---
@@ -461,18 +481,18 @@ with tab_charts:
     chart_config = load_json(CONFIG_FILE, {})
     if "chart_backups" not in st.session_state: st.session_state.chart_backups = {}
 
-    for fname in sel_charts:
+    # [FIX] Используем enumerate, чтобы получить индекс i для уникальности ключей
+    for i, fname in enumerate(sel_charts):
         fpath = os.path.join(CHARTS_FOLDER, fname)
         st.markdown("---")
         display_name = get_chart_display_name(fname)
         
-        # [SYNC FIX 1] Инициализируем счетчик версий для принудительного обновления редактора
+        # Инициализируем счетчик версий
         ver_key = f"ver_{fname}"
         if ver_key not in st.session_state: st.session_state[ver_key] = 0
         
-        # [SYNC FIX 2] Ключ редактора теперь зависит от версии. 
-        # Если версия изменится (после AI или Undo), создастся НОВЫЙ редактор с новым текстом.
-        editor_key = f"ed_{fname}_{st.session_state[ver_key]}"
+        # [FIX] Ключ редактора теперь включает индекс {i}
+        editor_key = f"ed_{fname}_{st.session_state[ver_key]}_{i}"
 
         # Определяем тему
         is_dark = st.session_state.get("wiz_active_dark", True)
@@ -494,8 +514,10 @@ with tab_charts:
             
         with c_edit:
             with st.popover("✏️", help="Переименовать", use_container_width=True):
-                new_title_input = st.text_input("Новое имя:", value=display_name, key=f"ren_input_{fname}")
-                if st.button("Сохранить", key=f"save_ren_{fname}", type="primary"):
+                # [FIX] Добавлен _{i} к ключу
+                new_title_input = st.text_input("Новое имя:", value=display_name, key=f"ren_input_{fname}_{i}")
+                # [FIX] Добавлен _{i} к ключу
+                if st.button("Сохранить", key=f"save_ren_{fname}_{i}", type="primary"):
                     titles_conf[fname] = new_title_input
                     save_json(TITLES_CONFIG_FILE, titles_conf)
                     st.rerun()
@@ -511,12 +533,12 @@ with tab_charts:
             with st.popover(ai_icon, help="AI Редактор (+Откат)", use_container_width=True):
                 if has_backup:
                     st.warning("Доступна предыдущая версия кода")
-                    if st.button("↩️ Вернуть как было", key=f"undo_{fname}", use_container_width=True):
+                    # [FIX] Добавлен _{i} к ключу
+                    if st.button("↩️ Вернуть как было", key=f"undo_{fname}_{i}", use_container_width=True):
                         old_code = st.session_state.chart_backups[fname]
                         with open(fpath, "w", encoding="utf-8") as f: f.write(old_code)
                         del st.session_state.chart_backups[fname]
                         
-                        # [SYNC FIX 3] Увеличиваем версию, чтобы редактор обновился
                         st.session_state[ver_key] += 1
                         
                         st.toast("✅ Изменения отменены!")
@@ -533,13 +555,16 @@ with tab_charts:
                 else:
                     llm_ok = True
                     rp_names = list(providers.keys())
-                    r_prov = st.selectbox("Провайдер", rp_names, key=f"r_prov_{fname}", label_visibility="collapsed")
+                    # [FIX] Добавлен _{i} к ключам
+                    r_prov = st.selectbox("Провайдер", rp_names, key=f"r_prov_{fname}_{i}", label_visibility="collapsed")
                     r_models = providers[r_prov]["models"]
-                    r_mod = st.selectbox("Модель", r_models, key=f"r_mod_{fname}", label_visibility="collapsed")
+                    r_mod = st.selectbox("Модель", r_models, key=f"r_mod_{fname}_{i}", label_visibility="collapsed")
 
-                ai_request = st.text_area("Запрос к AI", placeholder="Сделай красным...", key=f"aireq_{fname}", height=100)
+                # [FIX] Добавлен _{i} к ключу
+                ai_request = st.text_area("Запрос к AI", placeholder="Сделай красным...", key=f"aireq_{fname}_{i}", height=100)
                 
-                if st.button("🚀 Выполнить", key=f"do_ai_{fname}", type="primary", use_container_width=True, disabled=not llm_ok):
+                # [FIX] Добавлен _{i} к ключу
+                if st.button("🚀 Выполнить", key=f"do_ai_{fname}_{i}", type="primary", use_container_width=True, disabled=not llm_ok):
                     if not ai_request:
                         st.warning("Напишите запрос.")
                     else:
@@ -583,7 +608,6 @@ with tab_charts:
                                     f.flush()
                                     os.fsync(f.fileno())
                                 
-                                # [SYNC FIX 4] Увеличиваем версию, чтобы редактор подхватил НОВЫЙ код из файла
                                 st.session_state[ver_key] += 1
                                     
                                 st.toast("✨ Готово!")
@@ -595,13 +619,20 @@ with tab_charts:
         with c_del:
             with st.popover("🗑️", help="Удалить график", use_container_width=True):
                 st.write(f"Удалить **{display_name}**?")
-                if st.button("🔥 Да", key=f"del_chart_btn_{fname}", type="primary"):
+                # [FIX] Добавлен _{i} к ключу
+                if st.button("🔥 Да", key=f"del_chart_btn_{fname}_{i}", type="primary"):
+                    # Удаляем файл только если это не дубликат (или последний оставшийся)
+                    # Но пока удаляем жестко, Streamlit перезагрузится и второй дубликат просто исчезнет из списка
                     if os.path.exists(fpath): os.remove(fpath)
+                    
                     if fname in titles_conf: del titles_conf[fname]; save_json(TITLES_CONFIG_FILE, titles_conf)
                     if fname in chart_config: del chart_config[fname]; save_json(CONFIG_FILE, chart_config)
+                    
                     p_conf = load_json(PAGES_CONFIG_FILE, {})
                     for p_nm, ch_list in p_conf.items():
-                        if fname in ch_list: ch_list.remove(fname)
+                        # Удаляем ВСЕ вхождения этого файла из списка страницы, чтобы убрать дубликаты
+                        while fname in ch_list:
+                            ch_list.remove(fname)
                     save_json(PAGES_CONFIG_FILE, p_conf)
                     st.rerun()
 
@@ -619,13 +650,11 @@ with tab_charts:
 
         with st.expander(f"Редактировать код: {display_name}"):
             try:
-                # [SYNC FIX 5] Используем динамический editor_key
+                # [FIX] Используем editor_key, в который мы уже включили индекс {i} выше
                 res = code_editor(code_content, lang="python", height=[8, 15], key=editor_key, buttons=[{"name": "Save", "feather": "Save", "hasText": True, "commands": ["submit"]}])
                 
                 if res['type'] == "submit" and res['text'] != code_content:
                     with open(fpath, "w", encoding="utf-8") as f: f.write(res['text'])
-                    
-                    # При ручном сохранении тоже полезно обновить версию, чтобы синхронизировать состояние
                     st.session_state[ver_key] += 1
                     st.rerun()
             except Exception as e: st.warning(f"Ошибка редактора: {e}")
@@ -640,7 +669,6 @@ with tab_charts:
                 if mod and hasattr(mod, "render"):
                     source_files_paths = [os.path.join(DATA_FOLDER, f) for f in chart_config.get(fname, [])]
                     
-                    # УМНЫЙ ВЫЗОВ
                     import inspect
                     sig = inspect.signature(mod.render)
                     call_args = {"files": source_files_paths}
@@ -649,27 +677,103 @@ with tab_charts:
                     if "theme" in sig.parameters: call_args["theme"] = current_theme
                     if "return_fig" in sig.parameters: call_args["return_fig"] = False 
 
-                    current_fig = mod.render(**call_args)
+                    # ========================================================
+                    # 🛡️ SANDBOX: ТОТАЛЬНАЯ ИЗОЛЯЦИЯ ВИДЖЕТОВ
+                    # ========================================================
+                    # Список виджетов, которые могут вызывать конфликты ключей
+                    WIDGETS_TO_PATCH = [
+                        "button", "checkbox", "radio", "selectbox", "multiselect", 
+                        "slider", "select_slider", "text_input", "number_input", 
+                        "text_area", "date_input", "time_input", "file_uploader", 
+                        "color_picker", "toggle", "plotly_chart", "data_editor"
+                    ]
                     
+                    # Сохраняем оригинальные функции
+                    original_funcs = {name: getattr(st, name) for name in WIDGETS_TO_PATCH if hasattr(st, name)}
+                    
+                    # Уникальный суффикс для ЭТОГО экземпляра графика (имя файла + индекс в цикле)
+                    # Используем random, чтобы при перерисовке после удаления точно был новый ключ
+                    unique_suffix = f"{fname}_{i}_{int(time.time())}" 
+
+                    # Фабрика патчей
+                    def create_patch(func, suffix):
+                        def patched(*args, **kwargs):
+                            # 1. Если ключ уже есть -> добавляем суффикс
+                            if "key" in kwargs and kwargs["key"] is not None:
+                                kwargs["key"] = f"{kwargs['key']}_{suffix}"
+                            
+                            # 2. Если ключа нет -> генерируем его (чтобы избежать auto-id конфликтов)
+                            # Это критично для plotly_chart и кнопок без ключей
+                            else:
+                                # Берем label если есть, иначе просто random
+                                label_part = str(kwargs.get("label", "widget"))[:10]
+                                kwargs["key"] = f"auto_{label_part}_{suffix}_{random.randint(0, 9999)}"
+                            
+                            return func(*args, **kwargs)
+                        return patched
+
+                    # Применяем патчи
+                    for name, func in original_funcs.items():
+                        setattr(st, name, create_patch(func, unique_suffix))
+                    
+                    try:
+                        # ЗАПУСК КОДА ПОЛЬЗОВАТЕЛЯ В ИЗОЛЯЦИИ
+                        current_fig = mod.render(**call_args)
+                    finally:
+                        # ОБЯЗАТЕЛЬНО ВОЗВРАЩАЕМ ОРИГИНАЛЬНЫЕ ФУНКЦИИ
+                        # Даже если график упал с ошибкой, мы должны починить Streamlit обратно
+                        for name, func in original_funcs.items():
+                            setattr(st, name, func)
+                    # ========================================================
+
                 else: st.warning("Нет функции `render(files)`.")
             except Exception as e: st.error(f"Ошибка выполнения: {e}")
 
-        # --- НАПОЛНЕНИЕ КНОПКИ ЭКСПОРТА ---
-        if current_fig:
-            try:
-                from modules.utils import ChartExporter
-                with export_placeholder:
-                    with st.popover("📦", use_container_width=True):
-                        html_data = ChartExporter.export_to_html(current_fig, app_theme_is_dark=is_dark)
+        # --- КНОПКА ЭКСПОРТА ---
+        with export_placeholder:
+           # ... (тут твой код кнопки экспорта без изменений)
+           with st.popover("📦", help="Экспорт", use_container_width=True):
+                st.write(f"**Экспорт: {display_name}**")
+                
+                tab_html, tab_geb = st.tabs(["HTML", "GEB Пакет"])
+                
+                with tab_html:
+                    if current_fig:
+                        try:
+                            from modules.utils import ChartExporter
+                            html_data = ChartExporter.export_to_html(current_fig, app_theme_is_dark=is_dark)
+                            st.download_button(
+                                label="Скачать HTML", 
+                                data=html_data, 
+                                file_name=f"{fname[:-3]}.html",
+                                mime="text/html",
+                                key=f"dl_html_{fname}_{i}",
+                                use_container_width=True
+                            )
+                        except: st.error("Ошибка экспортера")
+                    else:
+                        st.info("Сначала отрисуйте график")
+
+                with tab_geb:
+                    st.caption("Код + Данные + Конфиг")
+                    
+                    # Прямая генерация данных при отрисовке кнопки.
+                    # BundleManager.export_chart возвращает BytesIO, 
+                    # getbuffer() превращает его в байты для скачивания.
+                    try:
+                        geb_data = BundleManager.export_chart(fname).getvalue()
+                        
                         st.download_button(
-                            label="Скачать HTML", 
-                            data=html_data, 
-                            file_name=f"{fname[:-3]}.html",
-                            mime="text/html",
-                            key=f"dl_btn_{fname}"
+                            label="⬇️ Скачать .geb пакет",
+                            data=geb_data,
+                            file_name=f"{fname[:-3]}.geb",
+                            mime="application/zip",
+                            key=f"dl_geb_direct_{fname}_{i}",
+                            type="primary",
+                            use_container_width=True
                         )
-            except ImportError:
-                pass
+                    except Exception as e:
+                        st.error(f"Ошибка сборки: {e}")
 # --- TAB 2: ETL EDITOR ---
 with tab_etl:
     st.write("🛠️ **Редактор скриптов обработки (ETL)**")
