@@ -5,31 +5,25 @@ import importlib.util
 from modules.settings import DATA_FOLDER, HANDLERS_FOLDER
 from modules.connector_loader import load_connectors
 
+# --- НОВОЕ: Импортируем S3 клиент ---
+from modules.s3_storage import s3_client
+
 def sync_single_source(source_config):
     """
     Выполняет загрузку данных для одного источника.
-    
-    Args:
-        source_config (dict): Конфигурация источника из JSON.
-        
-    Returns:
-        (success: bool, message: str, df: DataFrame|None)
     """
     try:
         # 1. Определяем коннектор
         connector_id = source_config.get("connector_id")
         
-        # --- СОВМЕСТИМОСТЬ СО СТАРЫМИ КОНФИГАМИ ---
-        # Если конфиг старый и connector_id нет, пытаемся угадать
+        # Обратная совместимость
         if not connector_id:
             if source_config.get("type") == "Google Sheets":
                 connector_id = "google_sheets"
-                # Формируем структуру конфига на лету
                 if "config" not in source_config:
                     source_config["config"] = {"url": source_config.get("url")}
             else:
                 connector_id = "base"
-        # -------------------------------------------
 
         # 2. Загружаем класс коннектора
         available_connectors = load_connectors()
@@ -38,18 +32,16 @@ def sync_single_source(source_config):
             return False, f"Коннектор '{connector_id}' не найден. Проверьте plugins.", None
             
         ConnectorClass = available_connectors[connector_id]
-        connector = ConnectorClass() # Инициализация
+        connector = ConnectorClass()
         
         # 3. Загружаем данные (Extract)
-        # Передаем словарь config (например: {"token": "...", "path": "//..."})
         config_data = source_config.get("config", {})
         
-        # Валидация (опционально)
         is_valid, err_msg = connector.validate(config_data)
         if not is_valid:
             return False, f"Ошибка конфигурации: {err_msg}", None
 
-        # !!! САМОЕ ВАЖНОЕ: ВЫЗОВ ПЛАГИНА !!!
+        # Вызов плагина
         df = connector.load_data(config_data)
 
         if df is None or df.empty:
@@ -59,16 +51,21 @@ def sync_single_source(source_config):
         handler_name = source_config.get("handler", "None")
         if handler_name and handler_name != "None":
             h_path = os.path.join(HANDLERS_FOLDER, handler_name)
+            
+            # --- НОВОЕ: Если скрипта нет локально, скачиваем из S3 ---
+            if not os.path.exists(h_path):
+                try:
+                    s3_client.download_file("handlers", handler_name, h_path)
+                except Exception as e:
+                    return False, f"Ошибка скачивания ETL-скрипта из S3: {e}", None
+
             if os.path.exists(h_path):
                 try:
-                    # Динамический импорт скрипта обработки
                     spec = importlib.util.spec_from_file_location(f"etl_{int(time.time())}", h_path)
                     mod = importlib.util.module_from_spec(spec)
                     spec.loader.exec_module(mod)
                     
                     if hasattr(mod, "handle"):
-                        # Если нужно, можно передать старую версию файла для инкрементальной логики
-                        # Но пока просто передаем свежий df
                         df = mod.handle(df)
                     else:
                         return False, f"В скрипте {handler_name} нет функции handle(df)", None
@@ -87,8 +84,13 @@ def sync_single_source(source_config):
         if filename.endswith(".xlsx"):
             df.to_excel(save_path, index=False)
         else:
-            # По умолчанию CSV
             df.to_csv(save_path, index=False)
+            
+        # --- НОВОЕ: ОТПРАВЛЯЕМ ФАЙЛ В S3 ---
+        try:
+            s3_client.upload_file(save_path, "data-sources", filename)
+        except Exception as e:
+            return False, f"Данные скачаны, но ошибка загрузки в S3: {e}", None
             
         return True, "OK", df
 

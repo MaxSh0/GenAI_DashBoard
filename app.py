@@ -1,846 +1,564 @@
 import streamlit as st
+import streamlit_authenticator as stauth
 import os
 import glob
 import importlib.util
-import datetime
-import random
 import time
 import concurrent.futures
 from code_editor import code_editor
 import shutil
 import pandas as pd
+import random
 
 # --- ИМПОРТЫ ---
+from modules.auth import is_authenticated, logout_user, login_redirect, check_auth_code
 from modules.settings import *
-from modules.utils import load_json, save_json
 from modules.data_loader import sync_single_source
 from modules.wizards import wizard_create_chart, wizard_manage_sources, wizard_manage_pages, wizard_manage_llm
 from modules.io_manager import BundleManager
-
-# !!! НОВЫЕ ИМПОРТЫ ДЛЯ ИНТЕГРАЦИЙ !!!
 from modules.llm_manager import get_providers, ask_llm
-from modules.auth import is_authenticated, logout_user, login_redirect, check_auth_code
-
-# --- INIT ---
-titles_conf_init = load_json(TITLES_CONFIG_FILE, {})
-APP_TITLE = titles_conf_init.get("app_title", "GenAI DashBoard v0.1")
-
-# --- 2. INIT ---
-st.set_page_config(page_title=APP_TITLE, layout="wide")
+from modules.s3_storage import s3_client
+from modules.db_manager import SessionLocal, init_db
+from modules.models import User, Page, Chart, DataSource, ETLHandler
+from modules.utils import sanitize_filename
+# ==========================================
+# 1. PAGE CONFIG & INIT
+# ==========================================
+st.set_page_config(page_title="GenAI DashBoard", layout="wide")
+init_db() 
 init_project_structure()
+s3_client.init_buckets(["charts", "handlers", "data-sources"])
 
-# ==================== SIDEBAR ====================
-with st.sidebar:
-    # --- ИСПОЛЬЗУЕМ ДИНАМИЧЕСКОЕ НАЗВАНИЕ ---
-    st.title(f"📊 {APP_TITLE}")
+# ==========================================
+# 2. АУТЕНТИФИКАЦИЯ ЧЕРЕЗ БД
+# ==========================================
+db_auth = SessionLocal()
+try:
+    users_db = db_auth.query(User).all()
+    credentials = {"usernames": {u.username: {"email": u.email, "name": u.name, "password": u.password_hash} for u in users_db}}
+finally:
+    db_auth.close()
 
-# !!! ВАЖНО: ПРОВЕРКА КОДА ОТ GOOGLE !!!
-check_auth_code()
-# -------------------------------------
+authenticator = stauth.Authenticate(credentials, "genai_dashboard_cookie", "genai_dashboard_key", 30)
 
-# --- HELPER: PARALLEL UPDATE ---
+try:
+    authenticator.login()
+except Exception as e:
+    st.error(e)
 
-def run_updates_in_parallel(sources_to_update, ui_placeholders):
-    results_log = []
-    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
-        future_to_source = {
-            executor.submit(sync_single_source, src): (i, src) 
-            for i, src in sources_to_update.items()
-        }
-        for future in concurrent.futures.as_completed(future_to_source):
-            idx, src = future_to_source[future]
-            fname = src.get('filename')
-            container = ui_placeholders[idx]
-            try:
-                ok, msg, _ = future.result()
-                if ok:
-                    container.success(f"✅ {fname}")
-                    results_log.append(f"✅ {fname}: OK")
-                else:
-                    # --- ИСПРАВЛЕНИЕ: Выводим текст ошибки (msg) ---
-                    container.error(f"❌ {fname}\n\n**Ошибка:** `{msg}`")
-                    results_log.append(f"❌ {fname}: {msg}")
-            except Exception as e:
-                container.error(f"❌ {fname}: {e}")
-                results_log.append(f"❌ {fname}: {e}")
-    return results_log
-
-# --- LOAD CONFIGS ---
-s_conf = load_json(SOURCES_CONFIG_FILE, {})
-pages_conf = load_json(PAGES_CONFIG_FILE, {})
-titles_conf = load_json(TITLES_CONFIG_FILE, {}) 
-
-if "General" in pages_conf:
-    pages_conf["Главная страница"] = pages_conf.pop("General")
-    save_json(PAGES_CONFIG_FILE, pages_conf)
-
-if not pages_conf:
-    all_charts = sorted([f for f in os.listdir(CHARTS_FOLDER) if f.endswith(".py")])
-    pages_conf = {"Главная страница": all_charts}
-    save_json(PAGES_CONFIG_FILE, pages_conf)
-
-# --- HELPER: FORMAT TITLE ---
-def get_chart_display_name(filename):
-    return titles_conf.get(filename, filename)
-
-# ==================== SIDEBAR ====================
-# ==================== SIDEBAR ====================
-with st.sidebar:
-    # --- 1. ВЫБОР ДАШБОРДА ---
-    st.header("📑 Дашборды")
+# ==========================================
+# 3. ОСНОВНАЯ ЛОГИКА ПРИЛОЖЕНИЯ
+# ==========================================
+if st.session_state["authentication_status"]:
+    current_username = st.session_state["username"]
+    db = SessionLocal()
     
-    page_names = list(pages_conf.keys())
-    
-    # Логика выбора страницы через URL или по умолчанию
-    query_params = st.query_params
-    default_index = 0
-    if "page" in query_params:
-        url_page = query_params["page"]
-        if url_page in page_names:
-            default_index = page_names.index(url_page)
+    # 1. Получаем пользователя
+    user_obj = db.query(User).filter(User.username == current_username).first()
+    if not user_obj:
+        st.error("Пользователь не найден в БД!"); st.stop()
 
-    current_page = st.selectbox(
-        "Выберите страницу:", 
-        page_names, 
-        index=default_index, 
-        label_visibility="collapsed"
-    )
-    
-    # Обновляем URL
-    st.query_params["page"] = current_page
-    
-    # --- ПАНЕЛЬ УПРАВЛЕНИЯ СТРАНИЦЕЙ (Rename + Settings) ---
-    c_info, c_ren, c_set = st.columns([0.6, 0.2, 0.2], vertical_alignment="center")
-    
-    # 1. Информация о кол-ве графиков
-    c_info.caption(f"Графиков: {len(pages_conf.get(current_page, []))}")
+    # 2. Инициализируем страницы
+    user_pages = db.query(Page).filter(Page.user_id == user_obj.id).all()
+    if not user_pages:
+        new_p = Page(user_id=user_obj.id, name="Главная страница")
+        db.add(new_p); db.commit(); db.refresh(new_p)
+        user_pages = [new_p]
 
-    # 2. Кнопка ПЕРЕИМЕНОВАТЬ (✏️)
-    with c_ren:
-        with st.popover("✏️", help="Переименовать эту страницу", use_container_width=True):
-            st.write(f"**Переименовать**")
-            new_page_name = st.text_input("Название:", value=current_page, key="new_page_name_input")
-            
-            if st.button("Сохранить", type="primary", use_container_width=True):
-                if not new_page_name:
-                    st.error("Имя не может быть пустым")
-                elif new_page_name in pages_conf and new_page_name != current_page:
-                    st.error("Такое имя уже есть!")
-                elif new_page_name == current_page:
-                    st.info("Имя не изменилось")
-                else:
-                    # Магия смены ключа в словаре
-                    pages_conf[new_page_name] = pages_conf.pop(current_page)
-                    save_json(PAGES_CONFIG_FILE, pages_conf)
-                    
-                    # Обновляем URL и перезагружаем
-                    st.query_params["page"] = new_page_name
-                    st.toast(f"✅ Переименовано в '{new_page_name}'")
-                    time.sleep(0.5)
-                    st.rerun()
+    # --- ХЕЛПЕРЫ ---
+    check_auth_code()
 
-    # 3. Кнопка НАСТРОЙКИ (⚙️) - управление составом графиков
-    if c_set.button("⚙️", help="Добавить/Удалить графики на странице", use_container_width=True):
-        wizard_manage_pages()
+    def run_updates_in_parallel(sources_to_update, ui_placeholders):
+        results_log = []
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_to_source = {executor.submit(sync_single_source, src): (i, src) for i, src in sources_to_update.items()}
+            for future in concurrent.futures.as_completed(future_to_source):
+                idx, src = future_to_source[future]
+                fname = src.get('filename'); container = ui_placeholders[idx]
+                try:
+                    ok, msg, _ = future.result()
+                    if ok:
+                        container.success(f"✅ {fname}"); results_log.append(f"✅ {fname}: OK")
+                    else:
+                        container.error(f"❌ {fname}\n\n**Ошибка:** `{msg}`"); results_log.append(f"❌ {fname}: {msg}")
+                except Exception as e:
+                    container.error(f"❌ {fname}: {e}"); results_log.append(f"❌ {fname}: {e}")
+        return results_log
 
-    st.divider()
-    # --- 2. ДАННЫЕ (NEW DESIGN: CONTROL CENTER) ---
-    # --- 2. ДАННЫЕ (SCROLLABLE LIST) ---
-    if GUIDE_URL: st.link_button("📘 Инструкция", GUIDE_URL, use_container_width=True)
-    
-    c_h1, c_h2 = st.columns([0.7, 0.3], vertical_alignment="center")
-    c_h1.header("☁️ Данные")
-    
-# 1. AUTH POPOVER
-    with st.popover("🔐 Настройка доступа (Google)", use_container_width=True):
-        st.write("**Статус подключений**")
-        
-        if is_authenticated():
-            st.success("Google: ✅ OK")
-            
-            # Проверка: если токен лежит на диске - пугаем пользователя
-            if os.path.exists(USER_TOKEN_FILE):
-                st.warning("Ваш личный токен сохранен в файле `user_token.json`.", icon="⚠️")
-                st.caption("🔴 **НИКОГДА НЕ ПЕРЕДАВАЙТЕ ЭТОТ ФАЙЛ НИКОМУ!** Он дает полный доступ к вашим таблицам.")
-            
-            if st.button("Выйти (и удалить токен)", use_container_width=True):
-                logout_user() # Это теперь удаляет и файл
-        else:
-            st.error("Google: ❌ Off")
-            login_redirect() # Рисует кнопку входа
+    # ==================== SIDEBAR ====================
+    with st.sidebar:
+        name_weight = max(len(user_obj.name), 5) 
+        c1, c2 = st.sidebar.columns([name_weight, 2], gap="small", vertical_alignment="center")
+        c1.markdown(f"👤 **{user_obj.name}**")
+        with c2:
+            authenticator.logout('🚪', key='sidebar_exit')
             
         st.divider()
-        st.caption("Настройки в меню ⚙️")
-
-    # 2. СПИСОК ИСТОЧНИКОВ (Scrollable)
-    def get_conn_icon(c_id):
-        icons = {"google_sheets": "📄", "ytsaurus": "🦖", "superset": "📊", "base": "📁"}
-        return icons.get(c_id, "❓")
-
-    active_sources = [s for s in s_conf.get("sources", []) if s.get("active", True)]
-    status_placeholders = {}
-
-    search_q = st.text_input("Поиск источника", placeholder="🔍 Найти файл...", label_visibility="collapsed")
-
-    with st.container(height=200, border=True):
-        if not active_sources:
-            st.caption("Нет источников.")
-        else:
-            c_n, c_act = st.columns([0.75, 0.25])
-            c_n.caption("**Источник**")
-            c_act.caption("**Обн.**")
-            
-            for i, src in enumerate(active_sources):
-                fname = src.get('filename', 'no_name')
-                if search_q and (search_q.lower() not in fname.lower()): continue
-
-                c_id = src.get("connector_id", "base")
-                icon = get_conn_icon(c_id)
-                
-                r_c1, r_c2 = st.columns([0.75, 0.25], vertical_alignment="center")
-                display_name = (fname[:16] + '..') if len(fname) > 18 else fname
-                r_c1.markdown(f"{icon} `{display_name}`", help=f"{c_id}: {fname}")
-                
-                # КНОПКА ОБНОВЛЕНИЯ ОДНОГО ФАЙЛА
-                if r_c2.button("↻", key=f"upd_s_{i}"):
-                    status_placeholders[i] = st.empty()
-                    status_placeholders[i].info("⏳")
-                    
-                    # --- FIX: Подготовка задачи с кредами ---
-                    task_src = src.copy()
-                    task_src["config"] = src.get("config", {}).copy()
-                    if "google_creds" in st.session_state:
-                        task_src["config"]["_injected_creds"] = st.session_state.google_creds
-                    # ----------------------------------------
-
-                    logs = run_updates_in_parallel({i: task_src}, status_placeholders)
-                    
-                    if not any("❌" in log for log in logs):
-                        time.sleep(0.5); st.rerun()
-                    else:
-                        st.toast(f"Ошибка: {fname}", icon="❌")
-
-                if i not in status_placeholders:
-                    status_placeholders[i] = st.empty()
-
-    # 3. КНОПКИ ДЕЙСТВИЙ
-    c_all, c_set = st.columns([0.7, 0.3])
-    
-    if c_all.button("🚀 Обновить ВСЕ", type="primary", use_container_width=True):
-        for i in range(len(active_sources)): status_placeholders[i].info("⏳")
+        st.title("📊 GenAI DashBoard")
         
-        # --- FIX: Подготовка ВСЕХ задач с кредами ---
-        tasks = {}
-        creds = st.session_state.get("google_creds")
+        # --- 1. ДАШБОРДЫ ---
+        st.header("📑 Дашборды")
+        page_names = [p.name for p in user_pages]
+        query_params = st.query_params
         
-        for i, src in enumerate(active_sources):
-            s_copy = src.copy()
-            s_copy["config"] = src.get("config", {}).copy()
-            if creds:
-                s_copy["config"]["_injected_creds"] = creds
-            tasks[i] = s_copy
-        # --------------------------------------------
+        d_idx = page_names.index(query_params["page"]) if "page" in query_params and query_params["page"] in page_names else 0
+        current_page_name = st.selectbox("Выберите страницу:", page_names, index=d_idx, label_visibility="collapsed", key="db_page_sel")
+        st.query_params["page"] = current_page_name
         
-        logs = run_updates_in_parallel(tasks, status_placeholders)
+        current_page_obj = next(p for p in user_pages if p.name == current_page_name)
+
+        c_info, c_ren, c_set = st.columns([0.6, 0.2, 0.2], vertical_alignment="center")
+        c_info.caption(f"Графиков: {len(current_page_obj.charts)}")
         
-        s_conf["last_updated"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        save_json(SOURCES_CONFIG_FILE, s_conf)
-        
-        if not any("❌" in log for log in logs):
-            st.toast("✅ Готово!"); time.sleep(1); st.rerun()
-        else: st.warning("Ошибки в логе.")
-
-    if c_set.button("⚙️", help="Настройки", use_container_width=True): 
-        wizard_manage_sources()
-        
-    if "last_updated" in s_conf:
-        st.caption(f"Last update: {s_conf['last_updated']}")
-
-    st.divider()
-    
-    # --- 3. AI НАСТРОЙКИ ---
-    st.header("🧠 AI Настройки")
-    if st.button("⚙️ Управление моделями", use_container_width=True):
-        wizard_manage_llm()
-    st.divider()
-
-    # --- 4. ГРАФИКИ ---
-    st.header("📊 Графики")
-    if st.button("➕ Новый график", use_container_width=True): wizard_create_chart()
-
-    page_charts = pages_conf.get(current_page, [])
-    existing_charts = [f for f in page_charts if os.path.exists(os.path.join(CHARTS_FOLDER, f))]
-    
-    sel_charts = st.multiselect(
-        "Показать на экране:", 
-        existing_charts, 
-        default=existing_charts, 
-        label_visibility="collapsed",
-        format_func=get_chart_display_name 
-    )
-    with st.expander("📥 Импорт пакетов (.geb)"):
-        uploaded_geb = st.file_uploader("Загрузить файл", type=["geb", "zip"], label_visibility="collapsed")
-        if uploaded_geb:
-            if st.button("Распаковать и установить", use_container_width=True):
-                with st.spinner("Установка..."):
-                    success, msg = BundleManager.import_bundle(uploaded_geb, target_page=current_page)
-                    if success:
-                        st.success("Готово!")
-                        st.info(msg)
-                        time.sleep(2)
-                        st.rerun()
-                    else:
-                        st.error(msg)
-    with st.expander("📂 Файлы и Связи"):
-        st.write("**Файлы данных:**")
-        up = st.file_uploader("Upload", type=["csv", "xlsx"], label_visibility="collapsed")
-        if up:
-            with open(os.path.join(DATA_FOLDER, up.name), "wb") as f: f.write(up.getbuffer())
-            st.rerun()
-        
-        # --- БЭКАПЫ И ИНСТРУМЕНТЫ ---
-        BACKUP_FOLDER = os.path.join(DATA_FOLDER, "backups")
-        if not os.path.exists(BACKUP_FOLDER): os.makedirs(BACKUP_FOLDER)
-
-        for f in glob.glob(os.path.join(DATA_FOLDER, "*")):
-            if os.path.isdir(f): continue
-            f_name = os.path.basename(f)
-            backup_path = os.path.join(BACKUP_FOLDER, f_name)
-            has_backup = os.path.exists(backup_path)
-            
-            fc1, fc_info, fc2, fc3 = st.columns([0.45, 0.22, 0.18, 0.15], vertical_alignment="center")
-            fc1.caption(f_name)
-            with fc_info:
-                if has_backup: st.markdown(":orange[**Mod**]", help="Есть оригинал")
-            
-            with fc2:
-                icon = "🛠️" if not has_backup else "♻️"
-                with st.popover(icon, help="Обработка"):
-                    st.markdown(f"**Файл:** `{f_name}`")
-                    if has_backup:
-                        st.info("Есть оригинал.")
-                        if st.button("⏪ Вернуть", key=f"rest_{f_name}", use_container_width=True):
-                            try:
-                                shutil.copy2(backup_path, f)
-                                os.remove(backup_path)
-                                st.toast("✅ Восстановлено!")
-                                time.sleep(0.5)
-                                st.rerun()
-                            except Exception as e: st.error(f"Err: {e}")
-                        st.divider()
-
-                    handlers_list = [h for h in os.listdir(HANDLERS_FOLDER) if h.endswith(".py") and h != "__init__.py"]
-                    if not handlers_list: st.warning("Нет скриптов")
-                    else:
-                        sel_script = st.selectbox("Скрипт:", handlers_list, key=f"h_sel_{f_name}")
-                        if st.button("🚀 Запуск", key=f"run_{f_name}_{sel_script}", type="primary", use_container_width=True):
-                            try:
-                                if not has_backup: shutil.copy2(f, backup_path)
-                                if f.endswith('.csv'): df_source = pd.read_csv(f)
-                                else: df_source = pd.read_excel(f)
-                                
-                                import time
-                                script_path = os.path.join(HANDLERS_FOLDER, sel_script)
-                                unique_name = f"handler_{int(time.time())}_{f_name}"
-                                spec = importlib.util.spec_from_file_location(unique_name, script_path)
-                                mod = importlib.util.module_from_spec(spec)
-                                spec.loader.exec_module(mod)
-                                
-                                if hasattr(mod, "handle"):
-                                    df_result = mod.handle(df_source)
-                                    if df_result is not None and not df_result.empty:
-                                        if f.endswith('.csv'): df_result.to_csv(f, index=False)
-                                        else: df_result.to_excel(f, index=False)
-                                        st.toast(f"✅ Готово!")
-                                        time.sleep(1)
-                                        st.rerun()
-                                    else: st.error("Пустой результат")
-                                else: st.error("Нет функции handle()")
-                            except Exception as e: st.error(f"Err: {e}")
-
-            with fc3:
-                with st.popover("✕", help="Удалить"):
-                    st.write(f"Удалить **{f_name}**?")
-                    if st.button("🔥 Да", key=f"conf_del_{f}", type="primary", use_container_width=True):
-                        os.remove(f)
-                        if os.path.exists(backup_path): os.remove(backup_path)
-                        st.rerun()
-        
-        st.divider()
-        st.write("**Связи:**")
-        conf = load_json(CONFIG_FILE, {})
-        data_files = [os.path.basename(f) for f in glob.glob(os.path.join(DATA_FOLDER, "*"))]
-        changed = False
-        
-        # [FIX] Добавляем i (индекс), чтобы ключи были уникальными: key=f"s_{ch}_{i}"
-        for i, ch in enumerate(sel_charts):
-            cur = [f for f in conf.get(ch, []) if f in data_files]
-            readable_name = get_chart_display_name(ch)
-            
-            # Используем уникальный ключ
-            sel = st.multiselect(f"Для '{readable_name}'", data_files, default=cur, key=f"s_{ch}_{i}")
-            
-            if sel != conf.get(ch, []):
-                conf[ch] = sel
-                changed = True
-                
-        if changed: save_json(CONFIG_FILE, conf)
-
-    # --- 5. УНИВЕРСАЛЬНЫЙ AI ЧАТ (Вместо Legacy Gemini) ---
-    auto_open = True if ("gen_prompt" in st.session_state and st.session_state.gen_prompt) else False
-    
-    with st.expander("💬 AI Чат (Все модели)", expanded=auto_open):
-        providers = get_providers()
-        
-        if not providers:
-            st.warning("⚠️ Сначала добавьте интеграцию в настройках!")
-        else:
-            # Селекторы модели (сохраняем выбор в сессии)
-            c_p, c_m = st.columns(2)
-            p_names = list(providers.keys())
-            
-            # Выбор провайдера
-            idx_p = 0
-            if "chat_prov" in st.session_state and st.session_state.chat_prov in p_names:
-                idx_p = p_names.index(st.session_state.chat_prov)
-            sel_prov = c_p.selectbox("Провайдер", p_names, index=idx_p, key="chat_prov_sel", label_visibility="collapsed")
-            st.session_state.chat_prov = sel_prov
-            
-            # Выбор модели
-            avail_models = providers[sel_prov]["models"]
-            idx_m = 0
-            if "chat_mod" in st.session_state and st.session_state.chat_mod in avail_models:
-                idx_m = avail_models.index(st.session_state.chat_mod)
-            sel_model = c_m.selectbox("Модель", avail_models, index=idx_m, key="chat_mod_sel", label_visibility="collapsed")
-            st.session_state.chat_mod = sel_model
-
-            st.divider()
-
-            if "msgs" not in st.session_state: st.session_state.msgs = []
-            if st.button("🗑️ Очистить"): 
-                st.session_state.msgs = []
-                st.rerun()
-            
-            # Отображение истории
-            for m in st.session_state.msgs: 
-                st.chat_message(m["role"]).write(m["content"])
-            
-            # --- ФУНКЦИЯ ОТПРАВКИ ---
-            def send_to_llm(prompt_text):
-                # Формируем историю для контекста (так как ask_llm stateless)
-                # Берем последние 4 сообщения
-                context_str = ""
-                for m in st.session_state.msgs[-4:]:
-                    role = "User" if m["role"] == "user" else "Assistant"
-                    context_str += f"{role}: {m['content']}\n"
-                
-                final_user_prompt = f"HISTORY:\n{context_str}\nCURRENT REQUEST:\n{prompt_text}"
-                
-                with st.spinner(f"🤖 {sel_prov} думает..."):
-                    success, resp = ask_llm(sel_prov, sel_model, "You are a helpful assistant.", final_user_prompt)
-                    
-                    if success:
-                        st.session_state.msgs.append({"role": "assistant", "content": resp})
-                        st.rerun()
-                    else:
-                        st.error(f"Ошибка: {resp}")
-
-            # 1. ОБРАБОТКА ЧЕРНОВИКА (из Визарда)
-            if "gen_prompt" in st.session_state and st.session_state.gen_prompt:
-                st.markdown("---")
-                st.info("✨ **Черновик запроса**")
-                draft_prompt = st.text_area("Текст:", value=st.session_state.gen_prompt, height=200, key="draft_prompt_area")
-                
-                c_send, c_close = st.columns([0.4, 0.6])
-                if c_send.button("🚀 Отправить", type="primary", use_container_width=True):
-                    del st.session_state.gen_prompt
-                    st.session_state.msgs.append({"role": "user", "content": draft_prompt})
-                    send_to_llm(draft_prompt)
-
-                if c_close.button("❌ Сбросить", use_container_width=True):
-                    del st.session_state.gen_prompt
-                    st.rerun()
-
-            # 2. ОБЫЧНЫЙ ЧАТ
-            if p := st.chat_input("Вопрос..."):
-                st.session_state.msgs.append({"role": "user", "content": p})
-                send_to_llm(p)
-
-# ==================== MAIN ====================
-st.title(f"📊 {current_page}")
-
-tab_charts, tab_etl = st.tabs(["📈 Просмотр Графиков", "🛠️ Редактор ETL (Обработчики)"])
-
-
-
-# --- TAB 1: CHARTS ---
-with tab_charts:
-    if not sel_charts: 
-        st.info("На этой странице нет графиков или они скрыты. Добавьте их через настройки ⚙️ или создайте новый.")
-    
-    chart_config = load_json(CONFIG_FILE, {})
-    if "chart_backups" not in st.session_state: st.session_state.chart_backups = {}
-
-    # [FIX] Используем enumerate, чтобы получить индекс i для уникальности ключей
-    for i, fname in enumerate(sel_charts):
-        fpath = os.path.join(CHARTS_FOLDER, fname)
-        st.markdown("---")
-        display_name = get_chart_display_name(fname)
-        
-        # Инициализируем счетчик версий
-        ver_key = f"ver_{fname}"
-        if ver_key not in st.session_state: st.session_state[ver_key] = 0
-        
-        # [FIX] Ключ редактора теперь включает индекс {i}
-        editor_key = f"ed_{fname}_{st.session_state[ver_key]}_{i}"
-
-        # Определяем тему
-        is_dark = st.session_state.get("wiz_active_dark", True)
-        current_theme = "plotly_dark" if is_dark else "plotly_white"
-
-        # 1. ЗАГРУЗКА МОДУЛЯ
-        try:
-            spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
-            mod = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(mod)
-        except Exception as e:
-            st.error(f"Ошибка загрузки модуля {fname}: {e}")
-            continue
-
-        # 2. ИНТЕРФЕЙС
-        c_title, c_edit, c_ai, c_exp, c_del = st.columns([0.68, 0.08, 0.08, 0.08, 0.08], vertical_alignment="center")
-        
-        with c_title: st.subheader(f"📌 {display_name}")
-            
-        with c_edit:
+        with c_ren:
             with st.popover("✏️", help="Переименовать", use_container_width=True):
-                # [FIX] Добавлен _{i} к ключу
-                new_title_input = st.text_input("Новое имя:", value=display_name, key=f"ren_input_{fname}_{i}")
-                # [FIX] Добавлен _{i} к ключу
-                if st.button("Сохранить", key=f"save_ren_{fname}_{i}", type="primary"):
-                    titles_conf[fname] = new_title_input
-                    save_json(TITLES_CONFIG_FILE, titles_conf)
-                    st.rerun()
+                new_n = st.text_input("Название:", value=current_page_obj.name, key=f"ren_pg_{current_page_obj.id}")
+                if st.button("Сохранить", key=f"btn_ren_pg_{current_page_obj.id}", type="primary"):
+                    if new_n and new_n != current_page_obj.name:
+                        current_page_obj.name = new_n; db.commit(); st.query_params["page"] = new_n; st.rerun()
 
-        # ЗАГОТОВКА ПОД КНОПКУ ЭКСПОРТА
-        with c_exp:
-            export_placeholder = st.empty()
-
-        # --- AI REFACTORING ---
-        with c_ai:
-            has_backup = fname in st.session_state.chart_backups
-            ai_icon = "✨"
-            with st.popover(ai_icon, help="AI Редактор (+Откат)", use_container_width=True):
-                if has_backup:
-                    st.warning("Доступна предыдущая версия кода")
-                    # [FIX] Добавлен _{i} к ключу
-                    if st.button("↩️ Вернуть как было", key=f"undo_{fname}_{i}", use_container_width=True):
-                        old_code = st.session_state.chart_backups[fname]
-                        with open(fpath, "w", encoding="utf-8") as f: f.write(old_code)
-                        del st.session_state.chart_backups[fname]
-                        
-                        st.session_state[ver_key] += 1
-                        
-                        st.toast("✅ Изменения отменены!")
-                        time.sleep(0.5)
-                        st.rerun()
-                    st.divider()
-
-                st.write(f"**AI Рефакторинг: {display_name}**")
-                
-                providers = get_providers()
-                if not providers:
-                    st.error("Нет AI интеграций!")
-                    llm_ok = False
-                else:
-                    llm_ok = True
-                    rp_names = list(providers.keys())
-                    # [FIX] Добавлен _{i} к ключам
-                    r_prov = st.selectbox("Провайдер", rp_names, key=f"r_prov_{fname}_{i}", label_visibility="collapsed")
-                    r_models = providers[r_prov]["models"]
-                    r_mod = st.selectbox("Модель", r_models, key=f"r_mod_{fname}_{i}", label_visibility="collapsed")
-
-                # [FIX] Добавлен _{i} к ключу
-                ai_request = st.text_area("Запрос к AI", placeholder="Сделай красным...", key=f"aireq_{fname}_{i}", height=100)
-                
-                # [FIX] Добавлен _{i} к ключу
-                if st.button("🚀 Выполнить", key=f"do_ai_{fname}_{i}", type="primary", use_container_width=True, disabled=not llm_ok):
-                    if not ai_request:
-                        st.warning("Напишите запрос.")
-                    else:
-                        try:
-                            with open(fpath, "r", encoding="utf-8") as f: current_code = f.read()
-                            st.session_state.chart_backups[fname] = current_code
-                        except: current_code = ""
-
-                        # Данные
-                        data_context = "Нет данных"
-                        try:
-                            linked_files = chart_config.get(fname, [])
-                            if linked_files:
-                                d_path = os.path.join(DATA_FOLDER, linked_files[0])
-                                if d_path.endswith('.csv'): df_p = pd.read_csv(d_path, nrows=3)
-                                else: df_p = pd.read_excel(d_path, nrows=3)
-                                data_context = "\n".join([f"- {c} ({t})" for c, t in zip(df_p.columns, df_p.dtypes)])
-                        except: pass
-
-                        refactor_prompt = (
-                            f"### ТЕКУЩИЙ КОД:\n```python\n{current_code}\n```\n\n"
-                            f"### ДАННЫЕ:\n{data_context}\n\n"
-                            f"### ЗАПРОС ПОЛЬЗОВАТЕЛЯ:\n\"{ai_request}\"\n"
-                        )
-                        
-                        system_msg = ("Ты Senior Python Developer. "
-                                      "Верни ТОЛЬКО валидный Python код модуля (def render). "
-                                      "ВАЖНО: В конце функции верни объект `fig`.")
-
-                        with st.spinner(f"🤖 {r_prov} переписывает код..."):
-                            success, result_text = ask_llm(r_prov, r_mod, system_msg, refactor_prompt)
-                            
-                            if success:
-                                new_code = result_text
-                                if "```python" in new_code: new_code = new_code.split("```python")[1].split("```")[0]
-                                elif "```" in new_code: new_code = new_code.split("```")[1]
-                                new_code = new_code.strip()
-                                
-                                with open(fpath, "w", encoding="utf-8") as f: 
-                                    f.write(new_code)
-                                    f.flush()
-                                    os.fsync(f.fileno())
-                                
-                                st.session_state[ver_key] += 1
-                                    
-                                st.toast("✨ Готово!")
-                                time.sleep(0.5)
-                                st.rerun()
-                            else:
-                                st.error(f"Ошибка AI: {result_text}")
-
-        with c_del:
-            with st.popover("🗑️", help="Удалить график", use_container_width=True):
-                st.write(f"Удалить **{display_name}**?")
-                # [FIX] Добавлен _{i} к ключу
-                if st.button("🔥 Да", key=f"del_chart_btn_{fname}_{i}", type="primary"):
-                    # Удаляем файл только если это не дубликат (или последний оставшийся)
-                    # Но пока удаляем жестко, Streamlit перезагрузится и второй дубликат просто исчезнет из списка
-                    if os.path.exists(fpath): os.remove(fpath)
-                    
-                    if fname in titles_conf: del titles_conf[fname]; save_json(TITLES_CONFIG_FILE, titles_conf)
-                    if fname in chart_config: del chart_config[fname]; save_json(CONFIG_FILE, chart_config)
-                    
-                    p_conf = load_json(PAGES_CONFIG_FILE, {})
-                    for p_nm, ch_list in p_conf.items():
-                        # Удаляем ВСЕ вхождения этого файла из списка страницы, чтобы убрать дубликаты
-                        while fname in ch_list:
-                            ch_list.remove(fname)
-                    save_json(PAGES_CONFIG_FILE, p_conf)
-                    st.rerun()
-
-        # --- CODE EDITOR ---
-        code_content = ""
-        file_read_error = False
+        if c_set.button("⚙️", help="Настройки состава", key="btn_pg_settings"):
+            wizard_manage_pages()
         
-        if os.path.exists(fpath):
-            try:
-                with open(fpath, "r", encoding="utf-8") as f: code_content = f.read()
-            except Exception as e: st.error(f"Ошибка чтения: {e}"); file_read_error = True
-        else: st.error(f"Файл не найден: {fname}"); file_read_error = True
+        st.divider()
 
-        if file_read_error: continue 
+        # --- 2. ДАННЫЕ И ИСТОЧНИКИ ---
+        if GUIDE_URL: st.link_button("📘 Инструкция", GUIDE_URL, use_container_width=True)
+        st.header("☁️ Данные")
+        
+        with st.popover("🔐 Доступ (Google)", use_container_width=True):
+            if is_authenticated():
+                st.success("Google: ✅ OK")
+                if st.button("Выйти", use_container_width=True, key="btn_logout"): logout_user(); st.rerun()
+            else:
+                st.error("Google: ❌ Off"); login_redirect()
 
-        with st.expander(f"Редактировать код: {display_name}"):
-            try:
-                # [FIX] Используем editor_key, в который мы уже включили индекс {i} выше
-                res = code_editor(code_content, lang="python", height=[8, 15], key=editor_key, buttons=[{"name": "Save", "feather": "Save", "hasText": True, "commands": ["submit"]}])
+        active_sources_db = db.query(DataSource).filter(DataSource.user_id == user_obj.id, DataSource.active == True).all()
+        
+        # --- КОМПАКТНАЯ СТРОКА: ПОИСК + ЗАГРУЗКА ---
+        c_search, c_upload = st.columns([0.85, 0.15], vertical_alignment="center")
+        search_q = c_search.text_input("Поиск...", placeholder="🔍 Найти...", label_visibility="collapsed", key="src_search")
+        
+        with c_upload:
+            with st.popover("📤", help="Загрузить локальный CSV/Excel файл"):
+                man_file = st.file_uploader("Загрузка файла", type=["csv", "xlsx"], label_visibility="collapsed")
+                if man_file:
+                    if st.button("💾 Сохранить", type="primary", use_container_width=True):
+                        # 1. Сохраняем физически (локальный кэш + облако S3)
+                        path = os.path.join(DATA_FOLDER, man_file.name)
+                        with open(path, "wb") as f: 
+                            f.write(man_file.getbuffer())
+                        s3_client.upload_file(path, "data-sources", man_file.name)
+                        
+                        # 2. Регистрируем в БД как "base" (локальный файл)
+                        exist_ds = db.query(DataSource).filter(DataSource.filename == man_file.name, DataSource.user_id == user_obj.id).first()
+                        if not exist_ds:
+                            new_ds = DataSource(user_id=user_obj.id, connector_id="base", filename=man_file.name, active=True)
+                            db.add(new_ds)
+                        
+                        db.commit()
+                        st.rerun()
+        
+        status_placeholders = {}
+
+        with st.container(height=200, border=True):
+            if not active_sources_db: st.caption("Нет источников.")
+            for i, src in enumerate(active_sources_db):
+                if search_q and search_q.lower() not in src.filename.lower(): continue
                 
-                if res['type'] == "submit" and res['text'] != code_content:
-                    with open(fpath, "w", encoding="utf-8") as f: f.write(res['text'])
-                    st.session_state[ver_key] += 1
+                c_icon = {"google_sheets": "📄", "ytsaurus": "🦖"}.get(src.connector_id, "📁")
+                r_c1, r_c2 = st.columns([0.8, 0.2], vertical_alignment="center")
+                
+                disp_name = (src.filename[:16] + '..') if len(src.filename) > 18 else src.filename
+                handler_info = f" &nbsp;<span style='color: #888888; font-size: 0.85em; white-space: nowrap;'>🛠️ {src.handler.name}</span>" if src.handler else ""
+                r_c1.markdown(f"{c_icon} `{disp_name}`{handler_info}", help=f"Файл: {src.filename}", unsafe_allow_html=True)
+                
+                # УСЛОВИЕ: Показываем кнопку ТОЛЬКО если это API-коннектор, а не локальный файл
+                if src.connector_id != "base":
+                    if r_c2.button("↻", key=f"upd_src_{src.id}"):
+                        status_placeholders[i] = st.empty(); status_placeholders[i].info("⏳")
+                        task = {"connector_id": src.connector_id, "filename": src.filename, "config": src.config_json or {}, "handler": src.handler_name}
+                        if "google_creds" in st.session_state: task["config"]["_injected_creds"] = st.session_state.google_creds
+                        run_updates_in_parallel({i: task}, status_placeholders)
+                        st.rerun()
+
+        c_all, c_manage = st.columns([0.7, 0.3])
+        if c_all.button("🚀 Обновить ВСЕ", type="primary", use_container_width=True):
+            tasks = {}
+            for i, src in enumerate(active_sources_db):
+                # ИСКЛЮЧАЕМ локальные файлы из массового обновления
+                if src.connector_id == "base": 
+                    continue 
+                
+                t = {"connector_id": src.connector_id, "filename": src.filename, "config": src.config_json or {}, "handler": src.handler_name}
+                if "google_creds" in st.session_state: t["config"]["_injected_creds"] = st.session_state.google_creds
+                tasks[i] = t
+                
+            if tasks: # Запускаем только если есть что обновлять
+                run_updates_in_parallel(tasks, {i: st.empty() for i in tasks.keys()})
+            st.rerun()
+
+        if c_manage.button("⚙️", help="Настройки", use_container_width=True): wizard_manage_sources()
+        st.divider()
+
+# --- 3. ГРАФИКИ И СВЯЗИ ---
+        st.header("📊 Графики")
+        if st.button("➕ Новый график", use_container_width=True): wizard_create_chart()
+
+        # Графики, которые РЕАЛЬНО привязаны к этой странице (из БД)
+        page_charts = current_page_obj.charts 
+        chart_dict = {c.id: c for c in page_charts}
+        all_chart_ids = list(chart_dict.keys())
+        
+        # ХАК ПРОТИВ КЭША STREAMLIT: добавляем длину списка в ключ.
+        # Теперь, как только добавится новый график, ключ изменится и подхватит новый default!
+        dynamic_key = f"ms_cv_{current_page_obj.id}_{len(all_chart_ids)}"
+        
+        sel_chart_ids = st.multiselect(
+            "Показать на экране:", 
+            options=all_chart_ids, 
+            default=all_chart_ids, 
+            format_func=lambda cid: chart_dict[cid].display_name, 
+            label_visibility="collapsed",
+            key=dynamic_key
+        )
+
+        # Финальный список объектов для рендера
+        charts_to_render = [chart_dict[cid] for cid in sel_chart_ids]
+        st.divider()
+        st.header("📥 Импорт графиков")
+        with st.expander("Загрузить (.geb)"):
+            if up_geb := st.file_uploader("Загрузить файл", type=["geb", "zip"], label_visibility="collapsed"):
+                if st.button("Установить", use_container_width=True):
+                    success, msg = BundleManager.import_bundle(up_geb, target_page=current_page_name)
+                    if success: st.success("Готово!"); time.sleep(1); st.rerun()
+                    else: st.error(msg)
+
+        # 🔗 УПРАВЛЕНИЕ СВЯЗЯМИ (Графики ↔ Данные)
+        st.divider()
+        st.header("🔗 Связь данных")
+        with st.expander("Графики ↔ Данные"):
+            if not page_charts: st.caption("Сначала добавьте графики.")
+            
+            src_dict = {s.id: s for s in active_sources_db} 
+            
+            for chart in page_charts:
+                cur_src_ids = [s.id for s in chart.data_sources]
+                
+                new_src_ids = st.multiselect(
+                    f"Файлы для '{chart.display_name}'", 
+                    options=list(src_dict.keys()), 
+                    default=cur_src_ids, 
+                    format_func=lambda sid: src_dict[sid].filename, 
+                    key=f"link_{chart.id}"
+                )
+                
+                if set(new_src_ids) != set(cur_src_ids):
+                    chart.data_sources = [src_dict[sid] for sid in new_src_ids]
+                    db.commit()
                     st.rerun()
+        # --- 3. AI НАСТРОЙКИ ---
+        st.divider()
+        st.header("🧠 AI Настройки")
+        if st.button("⚙️ Управление AI интеграциями", use_container_width=True, key="btn_manage_llm"):
+            wizard_manage_llm()
+        
+        # --- 4. AI ЧАТ ---
+        st.divider()
+        st.header("💬 AI Чат")
+        auto_open = bool(st.session_state.get("gen_prompt"))
+        with st.expander("Открыть чат с AI", expanded=auto_open):
+            providers = get_providers()
+            if providers:
+                c_p, c_m = st.columns(2)
+                p_names = list(providers.keys())
+                sel_prov = c_p.selectbox("Провайдер", p_names, index=p_names.index(st.session_state.get("chat_prov", p_names[0])) if st.session_state.get("chat_prov") in p_names else 0, key="c_prov", label_visibility="collapsed")
+                st.session_state.chat_prov = sel_prov
+                
+                avail_models = providers[sel_prov]["models"]
+                sel_model = c_m.selectbox("Модель", avail_models, index=avail_models.index(st.session_state.get("chat_mod", avail_models[0])) if st.session_state.get("chat_mod") in avail_models else 0, key="c_mod", label_visibility="collapsed")
+                st.session_state.chat_mod = sel_model
+
+                if "msgs" not in st.session_state: st.session_state.msgs = []
+                if st.button("🗑️ Очистить"): st.session_state.msgs = []; st.rerun()
+                for m in st.session_state.msgs: st.chat_message(m["role"]).write(m["content"])
+
+                def send_to_llm(p_text):
+                    ctx = "\n".join([f"{'User' if m['role']=='user' else 'AI'}: {m['content']}" for m in st.session_state.msgs[-4:]])
+                    success, resp = ask_llm(sel_prov, sel_model, "You are a helpful assistant.", f"HISTORY:\n{ctx}\nREQUEST:\n{p_text}")
+                    if success: st.session_state.msgs.append({"role": "assistant", "content": resp}); st.rerun()
+                    else: st.error(resp)
+
+                if draft := st.session_state.get("gen_prompt"):
+                    st.info("✨ Черновик")
+                    d_txt = st.text_area("Текст:", value=draft, height=150)
+                    c_s, c_c = st.columns([0.4, 0.6])
+                    if c_s.button("🚀 Отправить", type="primary", use_container_width=True):
+                        del st.session_state.gen_prompt; st.session_state.msgs.append({"role": "user", "content": d_txt}); send_to_llm(d_txt)
+                    if c_c.button("❌ Отмена", use_container_width=True): del st.session_state.gen_prompt; st.rerun()
+
+                if p := st.chat_input("Вопрос..."):
+                    st.session_state.msgs.append({"role": "user", "content": p}); send_to_llm(p)
+
+    # ==================== MAIN ====================
+    st.title(f"📊 {current_page_obj.name}")
+    tab_charts, tab_etl = st.tabs(["📈 Просмотр Графиков", "🛠️ Редактор ETL"])
+
+    # --- TAB 1: CHARTS ---
+    with tab_charts:
+        if not charts_to_render: 
+            st.info("Графики скрыты или отсутствуют. Добавьте их в состав дашборда (кнопка ⚙️ слева вверху) и выберите в меню.")
+            
+        if "chart_backups" not in st.session_state: st.session_state.chart_backups = {}
+
+        # Бежим только по видимым графикам!
+        for chart_db in charts_to_render:
+            fname = chart_db.technical_name
+            fpath = os.path.join(CHARTS_FOLDER, fname)
+            
+            try: s3_client.download_file("charts", fname, fpath); file_exists = True
+            except: st.warning(f"Файл {fname} не найден в S3."); file_exists = False
+            
+            if not file_exists: continue
+            
+            st.markdown("---")
+            ver_key = f"ver_{chart_db.id}"
+            if ver_key not in st.session_state: st.session_state[ver_key] = 0
+            ed_key = f"ed_{chart_db.id}_{st.session_state[ver_key]}"
+            is_dark = st.session_state.get("wiz_active_dark", True)
+
+            try:
+                spec = importlib.util.spec_from_file_location(fname[:-3], fpath)
+                mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(mod)
+            except Exception as e: st.error(f"Ошибка модуля {fname}: {e}"); continue
+
+            c_title, c_edit, c_ai, c_exp, c_del = st.columns([0.68, 0.08, 0.08, 0.08, 0.08], vertical_alignment="center")
+            with c_title: st.subheader(f"📌 {chart_db.display_name}")
+            
+            with c_edit:
+                with st.popover("✏️"):
+                    if n_title := st.text_input("Имя:", value=chart_db.display_name, key=f"r_{chart_db.id}"):
+                        if st.button("OK", key=f"bo_{chart_db.id}"): chart_db.display_name = n_title; db.commit(); st.rerun()
+            
+            with c_exp:
+                with st.popover("📦"):
+                    t_html, t_geb = st.tabs(["HTML", "GEB"])
+                    
+                    with t_html: 
+                        # Бронируем место под кнопку. Пока график не отрисован - тут висит текст.
+                        html_placeholder = st.empty()
+                        html_placeholder.info("Отрисовка...")
+                        
+                    with t_geb:
+                        try:
+                            geb_data = BundleManager.export_chart(fname).getvalue()
+                            st.download_button("Скачать .geb", data=geb_data, file_name=f"{fname[:-3]}.geb", mime="application/zip", type="primary", key=f"geb_{chart_db.id}", use_container_width=True)
+                        except Exception as e: st.error(e)
+
+            with c_ai:
+                with st.popover("✨"):
+                    if fname in st.session_state.chart_backups:
+                        if st.button("↩️ Откат", key=f"u_{chart_db.id}"):
+                            with open(fpath, "w", encoding="utf-8") as f: f.write(st.session_state.chart_backups[fname])
+                            del st.session_state.chart_backups[fname]; st.session_state[ver_key] += 1; st.rerun()
+                    
+                    if not providers: st.error("Нет AI")
+                    else:
+                        r_p = st.selectbox("AI", list(providers.keys()), key=f"rp_{chart_db.id}", label_visibility="collapsed")
+                        r_m = st.selectbox("Mod", providers[r_p]["models"], key=f"rm_{chart_db.id}", label_visibility="collapsed")
+                        req = st.text_area("Запрос", key=f"rq_{chart_db.id}")
+                        if st.button("🚀 Выполнить", key=f"b_ai_{chart_db.id}", type="primary"):
+                            with open(fpath, "r", encoding="utf-8") as f: cur_code = f.read()
+                            st.session_state.chart_backups[fname] = cur_code
+                            # Данные для контекста AI берем прямо из БД связей!
+                            data_ctx = "Нет данных"
+                            if chart_db.data_sources:
+                                d_path = os.path.join(DATA_FOLDER, chart_db.data_sources[0].filename)
+                                try:
+                                    df_p = pd.read_csv(d_path, nrows=3) if d_path.endswith('.csv') else pd.read_excel(d_path, nrows=3)
+                                    data_ctx = "\n".join([f"- {c} ({t})" for c, t in zip(df_p.columns, df_p.dtypes)])
+                                except: pass
+                            
+                            pmt = f"### ТЕКУЩИЙ КОД:\n```python\n{cur_code}\n```\n\n### ДАННЫЕ:\n{data_ctx}\n\n### ЗАПРОС:\n\"{req}\"\n"
+                            sys_msg = "Ты Senior Python Developer. Верни ТОЛЬКО валидный код модуля (def render). В конце верни fig."
+                            with st.spinner("AI думает..."):
+                                ok, res = ask_llm(r_p, r_m, sys_msg, pmt)
+                                if ok:
+                                    n_code = res.split("```python")[1].split("```")[0] if "```python" in res else res.split("```")[1] if "```" in res else res
+                                    with open(fpath, "w", encoding="utf-8") as f: f.write(n_code.strip())
+                                    s3_client.put_text("charts", fname, n_code.strip())
+                                    st.session_state[ver_key] += 1; st.rerun()
+                                else: st.error(res)
+
+            with c_del:
+                with st.popover("🗑️"):
+                    st.write(f"Удалить **{chart_db.display_name}**?")
+                    if st.button("🔥 Да", key=f"del_{chart_db.id}", type="primary"):
+                        # 1. Удаляем физические файлы
+                        if os.path.exists(fpath): os.remove(fpath)
+                        try:
+                            s3_client.delete_file("charts", fname)
+                        except:
+                            pass # Если файла там уже нет, игнорируем ошибку
+
+                        # 2. ОТВЯЗЫВАЕМ ГРАФИК ОТ ВСЕХ СТРАНИЦ
+                        linked_pages = db.query(Page).filter(Page.charts.contains(chart_db)).all()
+                        for p in linked_pages:
+                            p.charts.remove(chart_db)
+                        
+                        # 3. ОТВЯЗЫВАЕМ ОТ ВСЕХ ИСТОЧНИКОВ ДАННЫХ
+                        chart_db.data_sources = []
+                        
+                        # 4. Теперь безопасно удаляем сам график
+                        db.delete(chart_db)
+                        db.commit()
+                        st.rerun()
+
+            # Редактор кода
+            try:
+                with open(fpath, "r", encoding="utf-8") as f: code_c = f.read()
+                with st.expander(f"Код: {chart_db.display_name}"):
+                    res = code_editor(code_c, lang="python", height=[8, 15], key=ed_key, buttons=[{"name": "Save", "feather": "Save", "hasText": True, "commands": ["submit"]}])
+                    if res['type'] == "submit" and res['text'] != code_c:
+                        with open(fpath, "w", encoding="utf-8") as f: f.write(res['text'])
+                        s3_client.put_text("charts", fname, res['text'])
+                        st.session_state[ver_key] += 1; st.rerun()
             except Exception as e: st.warning(f"Ошибка редактора: {e}")
 
-        # --- ФИНАЛЬНЫЙ РЕНДЕР И ЭКСПОРТ ---
-        current_fig = None
-        
-        if "st.set_page_config" in code_content:
-            st.error("Это не модуль, а приложение! Убери `st.set_page_config`.")
-        else:
-            try:
-                if mod and hasattr(mod, "render"):
-                    source_files_paths = [os.path.join(DATA_FOLDER, f) for f in chart_config.get(fname, [])]
-                    
+            # Рендер
+            if hasattr(mod, "render"):
+                # ✅ БЕРЕМ ФАЙЛЫ ДЛЯ ГРАФИКА НАПРЯМУЮ ИЗ БАЗЫ!
+                source_paths = [os.path.join(DATA_FOLDER, ds.filename) for ds in chart_db.data_sources]
+                
+                # Sandboxing...
+                WIDGETS = ["button", "checkbox", "radio", "selectbox", "multiselect", "slider", "select_slider", "text_input", "number_input", "text_area", "date_input", "time_input", "file_uploader", "color_picker", "toggle", "plotly_chart", "data_editor"]
+                orig_funcs = {name: getattr(st, name) for name in WIDGETS if hasattr(st, name)}
+                u_suffix = f"chart_inst_{chart_db.id}"
+                
+                def create_patch(func, sfx):
+                    def patched(*args, **kwargs):
+                        # Если в коде графика уже прописан key, добавляем к нему суффикс
+                        if "key" in kwargs and kwargs["key"] is not None:
+                            kwargs["key"] = f"{kwargs['key']}_{sfx}"
+                        else:
+                            # Если ключа нет, создаем его на основе метки (label)
+                            label_part = str(kwargs.get('label', 'w'))[:10]
+                            kwargs["key"] = f"auto_{label_part}_{sfx}"
+                        return func(*args, **kwargs)
+                    return patched
+                
+                for n, f in orig_funcs.items(): setattr(st, n, create_patch(f, u_suffix))
+                
+                try:
                     import inspect
                     sig = inspect.signature(mod.render)
-                    call_args = {"files": source_files_paths}
+                    c_args = {"files": source_paths}
+                    if "chart_key" in sig.parameters: c_args["chart_key"] = fname
+                    if "theme" in sig.parameters: c_args["theme"] = "plotly_dark" if is_dark else "plotly_white"
+                    if "return_fig" in sig.parameters: c_args["return_fig"] = False
                     
-                    if "chart_key" in sig.parameters: call_args["chart_key"] = fname
-                    if "theme" in sig.parameters: call_args["theme"] = current_theme
-                    if "return_fig" in sig.parameters: call_args["return_fig"] = False 
-
-                    # ========================================================
-                    # 🛡️ SANDBOX: ТОТАЛЬНАЯ ИЗОЛЯЦИЯ ВИДЖЕТОВ
-                    # ========================================================
-                    # Список виджетов, которые могут вызывать конфликты ключей
-                    WIDGETS_TO_PATCH = [
-                        "button", "checkbox", "radio", "selectbox", "multiselect", 
-                        "slider", "select_slider", "text_input", "number_input", 
-                        "text_area", "date_input", "time_input", "file_uploader", 
-                        "color_picker", "toggle", "plotly_chart", "data_editor"
-                    ]
+                    # 1. Отрисовываем график
+                    fig = mod.render(**c_args)
                     
-                    # Сохраняем оригинальные функции
-                    original_funcs = {name: getattr(st, name) for name in WIDGETS_TO_PATCH if hasattr(st, name)}
-                    
-                    # Уникальный суффикс для ЭТОГО экземпляра графика (имя файла + индекс в цикле)
-                    # Используем random, чтобы при перерисовке после удаления точно был новый ключ
-                    unique_suffix = f"{fname}_{i}_{int(time.time())}" 
-
-                    # Фабрика патчей
-                    def create_patch(func, suffix):
-                        def patched(*args, **kwargs):
-                            # 1. Если ключ уже есть -> добавляем суффикс
-                            if "key" in kwargs and kwargs["key"] is not None:
-                                kwargs["key"] = f"{kwargs['key']}_{suffix}"
-                            
-                            # 2. Если ключа нет -> генерируем его (чтобы избежать auto-id конфликтов)
-                            # Это критично для plotly_chart и кнопок без ключей
-                            else:
-                                # Берем label если есть, иначе просто random
-                                label_part = str(kwargs.get("label", "widget"))[:10]
-                                kwargs["key"] = f"auto_{label_part}_{suffix}_{random.randint(0, 9999)}"
-                            
-                            return func(*args, **kwargs)
-                        return patched
-
-                    # Применяем патчи
-                    for name, func in original_funcs.items():
-                        setattr(st, name, create_patch(func, unique_suffix))
-                    
-                    try:
-                        # ЗАПУСК КОДА ПОЛЬЗОВАТЕЛЯ В ИЗОЛЯЦИИ
-                        current_fig = mod.render(**call_args)
-                    finally:
-                        # ОБЯЗАТЕЛЬНО ВОЗВРАЩАЕМ ОРИГИНАЛЬНЫЕ ФУНКЦИИ
-                        # Даже если график упал с ошибкой, мы должны починить Streamlit обратно
-                        for name, func in original_funcs.items():
-                            setattr(st, name, func)
-                    # ========================================================
-
-                else: st.warning("Нет функции `render(files)`.")
-            except Exception as e: st.error(f"Ошибка выполнения: {e}")
-
-        # --- КНОПКА ЭКСПОРТА ---
-        with export_placeholder:
-           # ... (тут твой код кнопки экспорта без изменений)
-           with st.popover("📦", help="Экспорт", use_container_width=True):
-                st.write(f"**Экспорт: {display_name}**")
-                
-                tab_html, tab_geb = st.tabs(["HTML", "GEB Пакет"])
-                
-                with tab_html:
-                    if current_fig:
-                        try:
-                            from modules.utils import ChartExporter
-                            html_data = ChartExporter.export_to_html(current_fig, app_theme_is_dark=is_dark)
-                            st.download_button(
-                                label="Скачать HTML", 
-                                data=html_data, 
-                                file_name=f"{fname[:-3]}.html",
-                                mime="text/html",
-                                key=f"dl_html_{fname}_{i}",
-                                use_container_width=True
-                            )
-                        except: st.error("Ошибка экспортера")
-                    else:
-                        st.info("Сначала отрисуйте график")
-
-                with tab_geb:
-                    st.caption("Код + Данные + Конфиг")
-                    
-                    # Прямая генерация данных при отрисовке кнопки.
-                    # BundleManager.export_chart возвращает BytesIO, 
-                    # getbuffer() превращает его в байты для скачивания.
-                    try:
-                        geb_data = BundleManager.export_chart(fname).getvalue()
-                        
-                        st.download_button(
-                            label="⬇️ Скачать .geb пакет",
-                            data=geb_data,
-                            file_name=f"{fname[:-3]}.geb",
-                            mime="application/zip",
-                            key=f"dl_geb_direct_{fname}_{i}",
-                            type="primary",
+                    # 2. Если график успешно вернул объект (fig), отдаем его в кнопку HTML!
+                    if fig:
+                        from modules.utils import ChartExporter
+                        html_data = ChartExporter.export_to_html(fig, app_theme_is_dark=is_dark)
+                        # Заменяем текст "Отрисовка..." на реальную кнопку скачивания
+                        html_placeholder.download_button(
+                            label="⬇️ Скачать HTML", 
+                            data=html_data, 
+                            file_name=f"{fname[:-3]}.html", 
+                            mime="text/html", 
+                            key=f"dl_html_{chart_db.id}", 
                             use_container_width=True
                         )
-                    except Exception as e:
-                        st.error(f"Ошибка сборки: {e}")
-# --- TAB 2: ETL EDITOR ---
-with tab_etl:
-    st.write("🛠️ **Редактор скриптов обработки (ETL)**")
-    
-    if not os.path.exists(HANDLERS_FOLDER): os.makedirs(HANDLERS_FOLDER)
-    handlers = sorted([f for f in os.listdir(HANDLERS_FOLDER) if f.endswith(".py") and f != "__init__.py"])
 
-    c_sel, c_new, c_ren, c_del = st.columns([0.6, 0.13, 0.13, 0.13], vertical_alignment="bottom")
-    sel_handler = c_sel.selectbox("Выберите скрипт:", handlers, label_visibility="collapsed", key="etl_selector")
+                except Exception as e: st.error(f"Ошибка рендера: {e}")
+                finally:
+                    for n, f in orig_funcs.items(): setattr(st, n, f)
 
-    with c_new:
-        with st.popover("➕", use_container_width=True, help="Создать новый"):
-            st.write("**Новый скрипт**")
-            new_h_name = st.text_input("Имя файла (лат):", placeholder="clean_sales", key="new_h_input")
-            if st.button("Создать", type="primary", key="create_h_btn"):
-                if new_h_name:
-                    if not new_h_name.endswith(".py"): new_h_name += ".py"
-                    new_path = os.path.join(HANDLERS_FOLDER, new_h_name)
-                    if os.path.exists(new_path): st.error("Файл существует!")
-                    else:
-                        template_code = '"""\nЗадача: обработка df\n"""\nimport pandas as pd\n\ndef handle(df):\n    return df\n'
-                        with open(new_path, "w", encoding="utf-8") as f: f.write(template_code)
-                        st.toast(f"✅ Создан: {new_h_name}")
-                        time.sleep(0.5)
-                        st.rerun()
-
-    with c_ren:
-        with st.popover("✏️", use_container_width=True, help="Переименовать"):
-            if sel_handler:
-                st.write(f"Переименовать **{sel_handler}**")
-                ren_name = st.text_input("Новое имя:", value=sel_handler, key="ren_h_input")
-                if st.button("Сохранить", key="ren_h_btn"):
-                    if ren_name and ren_name != sel_handler:
-                        if not ren_name.endswith(".py"): ren_name += ".py"
-                        os.rename(os.path.join(HANDLERS_FOLDER, sel_handler), os.path.join(HANDLERS_FOLDER, ren_name))
-                        st.rerun()
-
-    with c_del:
-        with st.popover("🗑️", use_container_width=True, help="Удалить"):
-            if sel_handler:
-                st.write(f"Удалить **{sel_handler}**?")
-                if st.button("🔥 Да", type="primary", key="del_h_btn"):
-                    os.remove(os.path.join(HANDLERS_FOLDER, sel_handler))
-                    st.rerun()
-
-    st.divider()
-
-    if sel_handler:
-        h_path = os.path.join(HANDLERS_FOLDER, sel_handler)
-        buffer_key = "etl_code_buffer"
-        last_file_key = "etl_last_loaded_file"
-
-        if (last_file_key not in st.session_state) or (st.session_state[last_file_key] != sel_handler):
-            if os.path.exists(h_path):
-                with open(h_path, "r", encoding="utf-8") as f: st.session_state[buffer_key] = f.read()
-            else: st.session_state[buffer_key] = ""
-            st.session_state[last_file_key] = sel_handler
-
-        custom_buttons = [{"name": "Save", "feather": "Save", "hasText": True, "alwaysOn": True, "commands": ["submit"], "style": {"top": "0.46rem", "right": "0.4rem", "background-color": "#FF4B4B", "color": "white", "border-radius": "4px"}}]
-        res_h = code_editor(st.session_state[buffer_key], lang="python", height=[20, 30], key=f"editor_component_{sel_handler}", buttons=custom_buttons)
+    # --- TAB 2: ETL ---
+    with tab_etl:
+        st.write("🛠️ **Редактор ETL**")
+        db_etl = SessionLocal()
         
-        if res_h['text'] is not None and res_h['text'] != st.session_state[buffer_key]:
-            st.session_state[buffer_key] = res_h['text']
+        try:
+            user_obj = db_etl.query(User).filter(User.username == current_username).first()
+            # Берем скрипты ТОЛЬКО текущего пользователя!
+            user_handlers = db_etl.query(ETLHandler).filter(ETLHandler.user_id == user_obj.id).all()
+            
+            handlers_dict = {h.name: h for h in user_handlers}
+            handler_names = list(handlers_dict.keys())
+            
+            c_sel, c_new, c_del = st.columns([0.74, 0.13, 0.13], vertical_alignment="bottom")
+            s_h_name = c_sel.selectbox("Скрипт:", handler_names, label_visibility="collapsed")
+            
+            with c_new:
+                with st.popover("➕ Создать"):
+                    nh = st.text_input("Название (напр. 'Очистка'):", key="new_etl_name")
+                    if st.button("💾 Сохранить", type="primary", use_container_width=True):
+                        if nh and nh not in handlers_dict:
+                            # Уникальное имя файла под капотом
+                            tech_name = f"{current_username}_{sanitize_filename(nh)}.py"
+                            
+                            new_h = ETLHandler(user_id=user_obj.id, name=nh, technical_name=tech_name)
+                            db_etl.add(new_h)
+                            db_etl.commit()
+                            
+                            default_code = "import pandas as pd\n\ndef handle(df):\n    # Ваш код очистки здесь\n    return df\n"
+                            p = os.path.join(HANDLERS_FOLDER, tech_name)
+                            with open(p, "w", encoding="utf-8") as f: f.write(default_code)
+                            s3_client.put_text("handlers", tech_name, default_code)
+                            st.rerun()
 
-        if res_h['type'] == "submit":
-            if res_h['text']:
-                with open(h_path, "w", encoding="utf-8") as f: f.write(res_h['text'])
-                st.toast(f"✅ Сохранено!")
-    else:
-        st.info("👈 Выберите скрипт.")
+            with c_del:
+                if s_h_name:
+                    with st.popover("🗑️ Удалить"):
+                        st.write(f"Удалить `{s_h_name}`?")
+                        if st.button("Да, удалить", type="primary", use_container_width=True):
+                            h_obj = handlers_dict[s_h_name]
+                            tech_name = h_obj.technical_name
+                            
+                            # Отвязываем от всех источников данных
+                            linked_sources = db_etl.query(DataSource).filter(DataSource.handler_id == h_obj.id).all()
+                            for s in linked_sources: s.handler_id = None
+                            
+                            db_etl.delete(h_obj)
+                            db_etl.commit()
+                            
+                            try: os.remove(os.path.join(HANDLERS_FOLDER, tech_name)) 
+                            except: pass
+                            s3_client.delete_file("handlers", tech_name)
+                            st.rerun()
+
+            # --- Редактор кода ---
+            if s_h_name:
+                h_obj = handlers_dict[s_h_name]
+                tech_name = h_obj.technical_name
+                h_path = os.path.join(HANDLERS_FOLDER, tech_name)
+                
+                if "etl_lf" not in st.session_state or st.session_state.etl_lf != tech_name:
+                    try:
+                        s3_client.download_file("handlers", tech_name, h_path)
+                        with open(h_path, "r", encoding="utf-8") as f: st.session_state.etl_h = f.read()
+                    except Exception:
+                        st.session_state.etl_h = "import pandas as pd\n\ndef handle(df):\n    return df\n"
+                    st.session_state.etl_lf = tech_name
+                
+                res_h = code_editor(st.session_state.etl_h, lang="python", height=[20, 30], key=f"ed_{tech_name}", buttons=[{"name": "Save", "feather": "Save", "hasText": True, "alwaysOn": True, "commands": ["submit"]}])
+                
+                if res_h['type'] == "submit" and res_h['text'] != st.session_state.etl_h:
+                    st.session_state.etl_h = res_h['text']
+                    with open(h_path, "w", encoding="utf-8") as f: f.write(res_h['text'])
+                    s3_client.put_text("handlers", tech_name, res_h['text'])
+                    st.toast(f"✅ Скрипт {s_h_name} сохранен!")
+        finally:
+            db_etl.close()
+    db.close()
+    
+elif st.session_state["authentication_status"] is False:
+    st.error('❌ Неверный логин или пароль')
+elif st.session_state["authentication_status"] is None:
+    st.warning('🔒 Введите логин и пароль')

@@ -1,8 +1,10 @@
 version: '3.8'
+
 services:
+  # 1. Основное приложение (Streamlit UI)
   app:
     build: .
-    container_name: genai_dashboard
+    container_name: genai_dashboard_web
     ports:
       - "8501:8501"
     volumes:
@@ -13,6 +15,78 @@ services:
       - ./handlers:/app/handlers
       - ./charts:/app/charts
       - ./data_sources:/app/data_sources
-
     environment:
       - PYTHONUNBUFFERED=1
+      # ИСПРАВЛЕНО: Данные совпадают с настройками сервиса db ниже
+      - DATABASE_URL=postgresql://genai_admin:superpassword@db:5432/genai_platform
+      - REDIS_URL=redis://redis:6379/0
+      # ИСПРАВЛЕНО: Добавлен http:// для корректной работы boto3
+      - MINIO_ENDPOINT=http://minio:9000
+      - MINIO_ACCESS_KEY=admin
+      - MINIO_SECRET_KEY=supersecretpassword
+    depends_on:
+      - db
+      - redis
+      - minio
+
+  # 2. База данных PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: genai_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: genai_admin
+      POSTGRES_PASSWORD: superpassword
+      POSTGRES_DB: genai_platform
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 3. Брокер очередей Redis
+  redis:
+    image: redis:7-alpine
+    container_name: genai_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # 4. Фоновый Worker (Celery)
+  worker:
+    build: .
+    container_name: genai_celery_worker
+    command: celery -A modules.tasks worker --loglevel=info
+    volumes:
+      - ./modules:/app/modules
+      - ./handlers:/app/handlers
+      - ./data_sources:/app/data_sources
+    environment:
+      # ИСПРАВЛЕНО: Приведено к единому стандарту
+      - DATABASE_URL=postgresql://genai_admin:superpassword@db:5432/genai_platform
+      - REDIS_URL=redis://redis:6379/0
+      - MINIO_ENDPOINT=http://minio:9000
+    depends_on:
+      - db
+      - redis
+      - minio
+
+  # 5. Хранилище S3 (MinIO)
+  minio:
+    image: minio/minio
+    container_name: genai_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: supersecretpassword
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:

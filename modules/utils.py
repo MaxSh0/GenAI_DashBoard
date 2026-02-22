@@ -2,6 +2,27 @@ import os
 import json
 import re
 import io
+from cryptography.fernet import Fernet
+from modules.settings import ENCRYPTION_KEY
+
+# Инициализируем шифратор
+cipher_suite = Fernet(ENCRYPTION_KEY)
+
+def encrypt_token(plain_text_token: str) -> str:
+    """Шифрует API ключ перед сохранением в БД"""
+    if not plain_text_token:
+        return plain_text_token
+    return cipher_suite.encrypt(plain_text_token.encode('utf-8')).decode('utf-8')
+
+def decrypt_token(encrypted_token: str) -> str:
+    """Расшифровывает API ключ для отправки запроса к LLM"""
+    if not encrypted_token:
+        return encrypted_token
+    try:
+        return cipher_suite.decrypt(encrypted_token.encode('utf-8')).decode('utf-8')
+    except Exception:
+        # На случай, если ключ в базе лежит в старом (незашифрованном) виде
+        return encrypted_token
 
 class ChartExporter:
     """

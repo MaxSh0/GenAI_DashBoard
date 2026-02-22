@@ -11,15 +11,6 @@ CONFIG_FOLDER = os.path.join(BASE_DIR, "config")  # <--- ВОТ ЭТОЙ ПЕР�
 # Папки для данных
 RAW_DATA_FOLDER = os.path.join(BASE_DIR, "data", "raw")
 DATA_FOLDER = os.path.join(BASE_DIR, "data_sources")
-
-# 2. ФАЙЛЫ КОНФИГУРАЦИИ (Все кладем в папку config)
-# Если ваши файлы лежат в корне, ПЕРЕМЕСТИТЕ их в папку 'config'
-CONFIG_FILE = os.path.join(CONFIG_FOLDER, "charts_config.json")
-SOURCES_CONFIG_FILE = os.path.join(CONFIG_FOLDER, "sources_config.json")
-PAGES_CONFIG_FILE = os.path.join(CONFIG_FOLDER, "pages_config.json")
-TITLES_CONFIG_FILE = os.path.join(CONFIG_FOLDER, "titles_config.json")
-LLM_PROVIDERS_FILE = os.path.join(CONFIG_FOLDER, "llm_providers.json")
-
 # !!! НОВОЕ: Файл с темами !!!
 THEMES_CONFIG_FILE = os.path.join(CONFIG_FOLDER, "themes.json")
 
@@ -29,7 +20,7 @@ USER_TOKEN_FILE = os.path.join(CONFIG_FOLDER, "user_token.json")
 
 # Ссылки
 GUIDE_URL = "https://docs.google.com/document/d/1xCy8bnTMZTShal60hxKWTWmXCnN5OAB46gd9Ad0kowg/edit?usp=sharing"
-
+ENCRYPTION_KEY = os.environ.get("ENCRYPTION_KEY", b"XLCAruJo-b3yWmCM4blsrBmDBgU5z5SF0Ni1C18zN4o=")
 # Права Google
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets.readonly',
@@ -46,3 +37,21 @@ def init_project_structure():
     init_file = os.path.join(HANDLERS_FOLDER, "__init__.py")
     if not os.path.exists(init_file):
         with open(init_file, "w") as f: f.write("")
+
+
+# --- S3 / MinIO Настройки ---
+raw_endpoint = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
+
+# Автоматически добавляем http://, если протокол забыли указать
+if not raw_endpoint.startswith("http://") and not raw_endpoint.startswith("https://"):
+    S3_ENDPOINT = f"http://{raw_endpoint}"
+else:
+    S3_ENDPOINT = raw_endpoint
+
+S3_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY", "admin")
+S3_SECRET_KEY = os.getenv("MINIO_SECRET_KEY", "supersecretpassword")
+
+# Названия бакетов (корневых папок) в S3
+S3_BUCKET_CHARTS = "charts"
+S3_BUCKET_HANDLERS = "handlers"
+S3_BUCKET_DATA = "data-sources"

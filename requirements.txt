@@ -1,30 +1,40 @@
 # --- Core UI ---
 streamlit>=1.30.0
-streamlit-code-editor    # Для редактора кода (code_editor)
+streamlit-code-editor    # Редактор кода
+streamlit-authenticator  # Авторизация пользователей
+pyyaml                   # Обязательно для чтения config/users.yaml (для authenticator)
 
 # --- Data Processing ---
 pandas
 numpy
-openpyxl                 # Обязательно для чтения .xlsx файлов (pd.read_excel)
+openpyxl                 # Чтение/запись .xlsx файлов
 
 # --- Visualization ---
-plotly                   # Для графиков (plotly.express, graph_objects)
+plotly                   # Графики Plotly
 
 # --- Google Auth & Sheets ---
 google-auth
 google-auth-oauthlib
 google-auth-httplib2
-gspread                  # Для коннектора Google Sheets
+gspread                  # Коннектор Google Sheets
 
 # --- AI & LLM ---
-openai                   # Для работы с ChatGPT/DeepSeek (через OpenAI API format)
-google-generativeai      # Для работы с Gemini
+openai                   # ChatGPT, DeepSeek, кастомные прокси
+google-generativeai      # Gemini
 
 # --- Big Data Connectors ---
-ytsaurus-client          # Для работы с YTsaurus (yt.wrapper)
-sqlalchemy             # (Опционально) Если будет Superset/SQL
-psycopg2-binary        # (Опционально) Если будет PostgreSQL
+ytsaurus-client          # YTsaurus
+requests                 # Нужно для работы вашего superset.py (API запросы)
+
+# --- Server Architecture (PostgreSQL) ---
+sqlalchemy               # ORM для работы с базой данных (замена JSON)
+psycopg2-binary          # Драйвер PostgreSQL (теперь обязателен, а не опционален)
+
+# --- Background Tasks & Storage (Celery + Redis + MinIO) ---
+celery                   # Очереди задач для тяжелого ETL
+redis                    # Брокер сообщений для Celery
+boto3                    # S3-клиент для работы с MinIO (сохранение файлов)
 
 # --- Utilities ---
-requests
-watchdog                 # Для авто-перезагрузки Streamlit при изменении файлов
+watchdog                 # Авто-перезагрузка Streamlit
+cryptography
