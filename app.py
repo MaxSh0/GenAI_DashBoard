@@ -39,10 +39,11 @@ try:
 finally:
     db_auth.close()
 
-authenticator = stauth.Authenticate(credentials, "genai_dashboard_cookie", "genai_dashboard_key", 30)
+authenticator = stauth.Authenticate(credentials, "cookie_v2", "key_v2", 30)
 
 try:
-    authenticator.login()
+    # В новых версиях библиотеки лучше явно указывать location
+    authenticator.login(location='main') 
 except Exception as e:
     st.error(e)
 

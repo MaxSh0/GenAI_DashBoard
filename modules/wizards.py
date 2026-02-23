@@ -732,11 +732,13 @@ def wizard_manage_workspaces():
 
                     if set(new_members) != set(current_members):
                         ws.users = [db.query(User).get(uid) for uid in new_members]
-                        # Защита от случайного удаления самого себя
+                        # Защита от случайного удаления самого себя (владельца)
                         if current_user not in ws.users:
                             ws.users.append(current_user)
+                            st.toast("⚠️ Владелец не может удалить сам себя!")
+                            
                         db.commit()
-                        st.rerun(scope="fragment")
+                        st.rerun()
 
                     # Личное пространство удалить нельзя
                     if not ws.name.startswith("Личное ("):
@@ -746,7 +748,7 @@ def wizard_manage_workspaces():
                             db.commit()
                             if st.session_state.active_ws_id == ws.id:
                                 st.session_state.active_ws_id = current_user.workspaces[0].id
-                            st.rerun()
+                            st.rerun(scope="fragment")
                 else:
                     # Обычный участник видит список коллег и может выйти
                     st.write("**Участники:**", ", ".join([user_dict[uid] for uid in current_members]))
@@ -755,7 +757,7 @@ def wizard_manage_workspaces():
                         db.commit()
                         if st.session_state.active_ws_id == ws.id:
                             st.session_state.active_ws_id = current_user.workspaces[0].id
-                        st.rerun()
+                        st.rerun(scope="fragment")
 
     finally:
         db.close()
