@@ -18,7 +18,7 @@ from modules.s3_storage import s3_client
 
 # --- ИМПОРТЫ БД ---
 from modules.db_manager import SessionLocal
-from modules.models import User, Page, Chart, DataSource, ChartTheme, ETLHandler
+from modules.models import User, Page, Chart, DataSource, ChartTheme, ETLHandler, Workspace
 
 # --- HELPER: ОЧИСТКА КОДА ОТ AI ---
 def clean_gemini_code(text):
@@ -378,14 +378,15 @@ def wizard_create_chart():
             user = db.query(User).filter(User.username == current_user).first()
             
             # Создаем или находим источник данных
-            ds = db.query(DataSource).filter(DataSource.filename == file.name, DataSource.user_id == user.id).first()
+            active_ws_id = st.session_state.get("active_ws_id")
+            ds = db.query(DataSource).filter(DataSource.filename == file.name, DataSource.workspace_id == active_ws_id).first()
             if not ds:
-                ds = DataSource(user_id=user.id, connector_id="base", filename=file.name, active=True)
+                ds = DataSource(workspace_id=active_ws_id, connector_id="base", filename=file.name, active=True)
                 db.add(ds)
                 db.flush()
 
             # Создаем график
-            new_chart = Chart(user_id=user.id, technical_name=py_name, display_name=display_title)
+            new_chart = Chart(workspace_id=active_ws_id, technical_name=py_name, display_name=display_title)
             
             # Связываем данные с графиком
             new_chart.data_sources.append(ds)
@@ -396,11 +397,12 @@ def wizard_create_chart():
             current_page_name = st.query_params.get("page", "Главная страница")
             
             # Привязываем график именно к текущей странице
-            page = db.query(Page).filter(Page.user_id == user.id, Page.name == current_page_name).first()
+            active_ws_id = st.session_state.get("active_ws_id")
+            page = db.query(Page).filter(Page.workspace_id == active_ws_id, Page.name == current_page_name).first()
             
-            # Если страница не найдена (страховка), берем первую попавшуюся
+            # Если страница не найдена, берем первую страницу ТЕКУЩЕГО воркспейса
             if not page:
-                page = db.query(Page).filter(Page.user_id == user.id).first()
+                page = db.query(Page).filter(Page.workspace_id == active_ws_id).first()
             
             if page:
                 page.charts.append(new_chart)
@@ -427,13 +429,12 @@ def wizard_manage_sources():
     available_connectors = load_connectors()
     
     try:
-        user_obj = db.query(User).filter(User.username == current_username).first()
-        sources_db = db.query(DataSource).filter(DataSource.user_id == user_obj.id).all()
+        active_ws_id = st.session_state.get("active_ws_id")
+        sources_db = db.query(DataSource).filter(DataSource.workspace_id == active_ws_id).all()
         
-        # Получаем все обработчики (без префикса)
-        from modules.models import ETLHandler # убедись, что импортировал модель
-        # Получаем красивые имена обработчиков из БД
-        db_handlers = db.query(ETLHandler).filter(ETLHandler.user_id == user_obj.id).all()
+        from modules.models import ETLHandler
+        # Получаем красивые имена обработчиков из БД для текущего воркспейса
+        db_handlers = db.query(ETLHandler).filter(ETLHandler.workspace_id == active_ws_id).all()
         handlers_dict = {h.name: h.id for h in db_handlers}
         handlers_id_to_name = {h.id: h.name for h in db_handlers} 
         
@@ -443,7 +444,7 @@ def wizard_manage_sources():
         
         if st.button("➕ Добавить новый источник (API)", use_container_width=True):
             new_ds = DataSource(
-                user_id=user_obj.id,
+                workspace_id=active_ws_id,
                 connector_id="google_sheets",
                 filename="new_data.csv",
                 config_json={},
@@ -579,10 +580,10 @@ def wizard_manage_pages():
     db = SessionLocal()
     
     try:
-        user_obj = db.query(User).filter(User.username == current_username).first()
-        user_pages = db.query(Page).filter(Page.user_id == user_obj.id).all()
+        active_ws_id = st.session_state.get("active_ws_id")
+        user_pages = db.query(Page).filter(Page.workspace_id == active_ws_id).all()
         
-        available_charts = db.query(Chart).filter(Chart.user_id == user_obj.id).all()
+        available_charts = db.query(Chart).filter(Chart.workspace_id == active_ws_id).all()
         chart_options = {c.technical_name: c.display_name for c in available_charts}
 
         st.write("### 🏗️ Структура вашего проекта")
@@ -591,7 +592,7 @@ def wizard_manage_pages():
         new_pg_name = c1.text_input("Название новой страницы", placeholder="Например: Продажи 2024")
         if c2.button("➕ Создать страницу", use_container_width=True):
             if new_pg_name:
-                new_pg = Page(user_id=user_obj.id, name=new_pg_name)
+                new_pg = Page(workspace_id=active_ws_id, name=new_pg_name)
                 db.add(new_pg)
                 db.commit()
                 st.toast(f"Страница '{new_pg_name}' создана")
@@ -682,3 +683,79 @@ def wizard_manage_llm():
                 st.rerun(scope="fragment")
             else:
                 st.error("Заполните Название, API Key и список моделей.")
+
+
+# --- WIZARD: УПРАВЛЕНИЕ ПРОСТРАНСТВАМИ (WORKSPACES) ---
+@st.dialog("🏢 Управление пространствами", width="large")
+def wizard_manage_workspaces():
+    current_username = st.session_state["username"]
+    db = SessionLocal()
+
+    try:
+        current_user = db.query(User).filter(User.username == current_username).first()
+        all_users = db.query(User).all()
+        user_dict = {u.id: u.username for u in all_users}
+
+        st.write("### ➕ Создать новое пространство")
+        c1, c2 = st.columns([0.7, 0.3], vertical_alignment="bottom")
+        new_ws_name = c1.text_input("Название (например: Маркетинг)", key="new_ws_name")
+
+        if c2.button("Создать", use_container_width=True, type="primary"):
+            if new_ws_name:
+                new_ws = Workspace(name=new_ws_name, owner_id=current_user.id)
+                new_ws.users.append(current_user)
+                db.add(new_ws)
+                db.commit()
+                st.session_state.active_ws_id = new_ws.id
+                st.toast(f"Пространство '{new_ws_name}' создано!")
+                st.rerun()
+
+        st.divider()
+        st.write("### 👥 Мои пространства")
+
+        for ws in current_user.workspaces:
+            is_owner = ws.owner_id == current_user.id
+            role_text = "👑 Владелец" if is_owner else "👤 Участник"
+
+            with st.expander(f"🏢 {ws.name} ({role_text})"):
+                current_members = [u.id for u in ws.users]
+
+                if is_owner:
+                    # Владелец может добавлять и удалять коллег
+                    new_members = st.multiselect(
+                        "Участники (могут просматривать и редактировать):",
+                        options=list(user_dict.keys()),
+                        default=current_members,
+                        format_func=lambda x: user_dict[x],
+                        key=f"ws_members_{ws.id}"
+                    )
+
+                    if set(new_members) != set(current_members):
+                        ws.users = [db.query(User).get(uid) for uid in new_members]
+                        # Защита от случайного удаления самого себя
+                        if current_user not in ws.users:
+                            ws.users.append(current_user)
+                        db.commit()
+                        st.rerun(scope="fragment")
+
+                    # Личное пространство удалить нельзя
+                    if not ws.name.startswith("Личное ("):
+                        if st.button("🗑️ Удалить пространство", key=f"del_ws_{ws.id}"):
+                            # Удаляем связи и сам воркспейс
+                            db.delete(ws)
+                            db.commit()
+                            if st.session_state.active_ws_id == ws.id:
+                                st.session_state.active_ws_id = current_user.workspaces[0].id
+                            st.rerun()
+                else:
+                    # Обычный участник видит список коллег и может выйти
+                    st.write("**Участники:**", ", ".join([user_dict[uid] for uid in current_members]))
+                    if st.button("🚪 Покинуть пространство", key=f"leave_{ws.id}"):
+                        ws.users.remove(current_user)
+                        db.commit()
+                        if st.session_state.active_ws_id == ws.id:
+                            st.session_state.active_ws_id = current_user.workspaces[0].id
+                        st.rerun()
+
+    finally:
+        db.close()

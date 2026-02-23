@@ -14,12 +14,12 @@ import random
 from modules.auth import is_authenticated, logout_user, login_redirect, check_auth_code
 from modules.settings import *
 from modules.data_loader import sync_single_source
-from modules.wizards import wizard_create_chart, wizard_manage_sources, wizard_manage_pages, wizard_manage_llm
+from modules.wizards import wizard_create_chart, wizard_manage_sources, wizard_manage_pages, wizard_manage_llm, wizard_manage_workspaces
 from modules.io_manager import BundleManager
 from modules.llm_manager import get_providers, ask_llm
 from modules.s3_storage import s3_client
 from modules.db_manager import SessionLocal, init_db
-from modules.models import User, Page, Chart, DataSource, ETLHandler
+from modules.models import User, Page, Chart, DataSource, ETLHandler, Workspace
 from modules.utils import sanitize_filename
 # ==========================================
 # 1. PAGE CONFIG & INIT
@@ -56,14 +56,28 @@ if st.session_state["authentication_status"]:
     # 1. Получаем пользователя
     user_obj = db.query(User).filter(User.username == current_username).first()
     if not user_obj:
-        st.error("Пользователь не найден в БД!"); st.stop()
+        st.error("Пользователь не найден в БД!");
+        st.stop()
 
-    # 2. Инициализируем страницы
-    user_pages = db.query(Page).filter(Page.user_id == user_obj.id).all()
-    if not user_pages:
-        new_p = Page(user_id=user_obj.id, name="Главная страница")
-        db.add(new_p); db.commit(); db.refresh(new_p)
-        user_pages = [new_p]
+    # --- ИНИЦИАЛИЗАЦИЯ ВОРКСПЕЙСА ---
+    user_workspaces = user_obj.workspaces
+    if not user_workspaces:
+        # Если пространств нет, создаем личное
+        default_ws = Workspace(name=f"Личное ({user_obj.username})", owner_id=user_obj.id)
+        default_ws.users.append(user_obj)
+        db.add(default_ws)
+        db.commit()
+        db.refresh(default_ws)
+        user_workspaces = [default_ws]
+
+
+    # 2. Инициализируем пространства (Workspaces)
+    user_workspaces = user_obj.workspaces
+    if not user_workspaces:
+        default_ws = Workspace(name=f"Личное ({user_obj.username})", owner_id=user_obj.id)
+        default_ws.users.append(user_obj)
+        db.add(default_ws); db.commit(); db.refresh(default_ws)
+        user_workspaces = [default_ws]
 
     # --- ХЕЛПЕРЫ ---
     check_auth_code()
@@ -93,6 +107,39 @@ if st.session_state["authentication_status"]:
         with c2:
             authenticator.logout('🚪', key='sidebar_exit')
             
+        st.divider()
+        
+        # --- СЕЛЕКТОР ВОРКСПЕЙСА ---
+        ws_dict = {ws.id: ws.name for ws in user_workspaces}
+        
+        # 1. Приоритет: смотрим в URL
+        url_ws_id = st.query_params.get("ws")
+        if url_ws_id and int(url_ws_id) in ws_dict:
+            st.session_state.active_ws_id = int(url_ws_id)
+        
+        # 2. Если в URL пусто, но есть в сессии - оставляем как есть. 
+        # 3. Если везде пусто - берем первый доступный.
+        elif "active_ws_id" not in st.session_state or st.session_state.active_ws_id not in ws_dict:
+            st.session_state.active_ws_id = user_workspaces[0].id
+            st.query_params["ws"] = str(st.session_state.active_ws_id)
+            
+        c_ws, c_ws_btn = st.columns([0.85, 0.15], vertical_alignment="bottom")
+        sel_ws_id = c_ws.selectbox("🏢 Пространство:", options=list(ws_dict.keys()), format_func=lambda x: ws_dict[x], index=list(ws_dict.keys()).index(st.session_state.active_ws_id), key="workspace_selector")
+        if c_ws_btn.button("⚙️", key=f"btn_manage_ws_{user_obj.id}_1", help="Управление пространствами"):
+            wizard_manage_workspaces()
+            
+        if sel_ws_id != st.session_state.active_ws_id:
+            st.session_state.active_ws_id = sel_ws_id
+            st.query_params["ws"] = str(sel_ws_id) # Записываем в URL
+            st.rerun()
+            
+        # Загружаем страницы ТОЛЬКО для активного воркспейса
+        user_pages = db.query(Page).filter(Page.workspace_id == st.session_state.active_ws_id).all()
+        if not user_pages:
+            new_p = Page(workspace_id=st.session_state.active_ws_id, name="Главная страница")
+            db.add(new_p); db.commit(); db.refresh(new_p)
+            user_pages = [new_p]
+
         st.divider()
         st.title("📊 GenAI DashBoard")
         
@@ -133,7 +180,7 @@ if st.session_state["authentication_status"]:
             else:
                 st.error("Google: ❌ Off"); login_redirect()
 
-        active_sources_db = db.query(DataSource).filter(DataSource.user_id == user_obj.id, DataSource.active == True).all()
+        active_sources_db = db.query(DataSource).filter(DataSource.workspace_id == st.session_state.active_ws_id, DataSource.active == True).all()
         
         # --- КОМПАКТНАЯ СТРОКА: ПОИСК + ЗАГРУЗКА ---
         c_search, c_upload = st.columns([0.85, 0.15], vertical_alignment="center")
@@ -151,9 +198,9 @@ if st.session_state["authentication_status"]:
                         s3_client.upload_file(path, "data-sources", man_file.name)
                         
                         # 2. Регистрируем в БД как "base" (локальный файл)
-                        exist_ds = db.query(DataSource).filter(DataSource.filename == man_file.name, DataSource.user_id == user_obj.id).first()
+                        exist_ds = db.query(DataSource).filter(DataSource.filename == man_file.name, DataSource.workspace_id == st.session_state.active_ws_id).first()
                         if not exist_ds:
-                            new_ds = DataSource(user_id=user_obj.id, connector_id="base", filename=man_file.name, active=True)
+                            new_ds = DataSource(workspace_id=st.session_state.active_ws_id, connector_id="base", filename=man_file.name, active=True)
                             db.add(new_ds)
                         
                         db.commit()
@@ -485,9 +532,8 @@ if st.session_state["authentication_status"]:
         db_etl = SessionLocal()
         
         try:
-            user_obj = db_etl.query(User).filter(User.username == current_username).first()
-            # Берем скрипты ТОЛЬКО текущего пользователя!
-            user_handlers = db_etl.query(ETLHandler).filter(ETLHandler.user_id == user_obj.id).all()
+            # Берем скрипты ТОЛЬКО текущего пространства!
+            user_handlers = db_etl.query(ETLHandler).filter(ETLHandler.workspace_id == st.session_state.active_ws_id).all()
             
             handlers_dict = {h.name: h for h in user_handlers}
             handler_names = list(handlers_dict.keys())
@@ -501,9 +547,9 @@ if st.session_state["authentication_status"]:
                     if st.button("💾 Сохранить", type="primary", use_container_width=True):
                         if nh and nh not in handlers_dict:
                             # Уникальное имя файла под капотом
-                            tech_name = f"{current_username}_{sanitize_filename(nh)}.py"
+                            tech_name = f"ws_{st.session_state.active_ws_id}_{sanitize_filename(nh)}.py"
                             
-                            new_h = ETLHandler(user_id=user_obj.id, name=nh, technical_name=tech_name)
+                            new_h = ETLHandler(workspace_id=st.session_state.active_ws_id, name=nh, technical_name=tech_name)
                             db_etl.add(new_h)
                             db_etl.commit()
                             
