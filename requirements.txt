@@ -4,6 +4,9 @@ streamlit-code-editor    # Редактор кода
 streamlit-authenticator  # Авторизация пользователей
 pyyaml                   # Обязательно для чтения config/users.yaml (для authenticator)
 
+# --- Configuration & Environment ---
+python-dotenv            # Загрузка переменных (БД, S3 ключи) из файла .env
+
 # --- Data Processing ---
 pandas
 numpy
@@ -18,9 +21,11 @@ google-auth-oauthlib
 google-auth-httplib2
 gspread                  # Коннектор Google Sheets
 
-# --- AI & LLM ---
+# --- AI, LLM & Agents ---
 openai                   # ChatGPT, DeepSeek, кастомные прокси
 google-generativeai      # Gemini
+langchain                # Базовые компоненты для построения цепочек LLM
+langgraph                # Для реализации swarm-архитектуры и системы AI-агентов
 
 # --- Big Data Connectors ---
 ytsaurus-client          # YTsaurus
@@ -29,6 +34,7 @@ requests                 # Нужно для работы вашего superset.
 # --- Server Architecture (PostgreSQL) ---
 sqlalchemy               # ORM для работы с базой данных (замена JSON)
 psycopg2-binary          # Драйвер PostgreSQL (теперь обязателен, а не опционален)
+alembic                  # Управление миграциями БД (чтобы не сносить таблицы при изменениях)
 
 # --- Background Tasks & Storage (Celery + Redis + MinIO) ---
 celery                   # Очереди задач для тяжелого ETL
@@ -37,4 +43,4 @@ boto3                    # S3-клиент для работы с MinIO (сох�
 
 # --- Utilities ---
 watchdog                 # Авто-перезагрузка Streamlit
-cryptography
+cryptography             # Шифрование
