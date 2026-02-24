@@ -9,7 +9,7 @@ def create_user():
     print("=" * 40)
 
     # 1. Запрашиваем данные у админа
-    username = input("Логин (username): ").strip()
+    username = input("Логин (username): ").strip().lower()
     if not username:
         print("❌ Логин не может быть пустым!")
         return
