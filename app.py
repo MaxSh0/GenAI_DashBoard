@@ -39,7 +39,7 @@ try:
 finally:
     db_auth.close()
 
-authenticator = stauth.Authenticate(credentials, "cookie_v2", "key_v2", 30)
+authenticator = stauth.Authenticate(credentials, "cookie_v1", "key_v1", 30)
 
 try:
     # В новых версиях библиотеки лучше явно указывать location
@@ -57,7 +57,9 @@ if st.session_state["authentication_status"]:
     # 1. Получаем пользователя
     user_obj = db.query(User).filter(User.username == current_username).first()
     if not user_obj:
-        st.error("Пользователь не найден в БД!");
+        st.warning("⚠️ Ваша сессия устарела (пользователь не найден в текущей базе данных).")
+        # Выводим штатную кнопку выхода, которая корректно убьет зависшую куку
+        authenticator.logout("🔄 Сбросить сессию и выйти", key="ghost_logout")
         st.stop()
 
     # --- ИНИЦИАЛИЗАЦИЯ ВОРКСПЕЙСА ---
