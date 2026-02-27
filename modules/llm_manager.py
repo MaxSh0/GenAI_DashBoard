@@ -34,29 +34,35 @@ def decrypt_token(encrypted_token: str) -> str:
 
 
 # --- HELPER ДЛЯ ПОЛУЧЕНИЯ ID ПОЛЬЗОВАТЕЛЯ ---
-def _get_current_user_id(db):
-    if "username" not in st.session_state:
-        return None
-    user = db.query(User).filter(User.username == st.session_state["username"]).first() #
-    return user.id if user else None
+def _get_current_user_id(db, explicit_user_id=None):
+    # Если мы в Celery и явно передали ID юзера — используем его
+    if explicit_user_id is not None:
+        return explicit_user_id
+        
+    try:
+        # Пытаемся взять из сессии (сработает ТОЛЬКО в веб-интерфейсе Streamlit)
+        if "username" in st.session_state:
+            user = db.query(User).filter(User.username == st.session_state["username"]).first()
+            return user.id if user else None
+    except Exception:
+        # Если мы в фоне (Celery), st.session_state недоступен и вызовет ошибку
+        pass
+        
+    return None
 
 # --- УПРАВЛЕНИЕ НАСТРОЙКАМИ (ТЕПЕРЬ ЧЕРЕЗ БД) ---
-
-def get_providers():
+def get_providers(user_id=None):
     """Загружает список интеграций пользователя из БД."""
-    db = SessionLocal() #
+    db = SessionLocal()
     try:
-        user_id = _get_current_user_id(db)
-        if not user_id: return {}
+        uid = _get_current_user_id(db, user_id)
+        if not uid: return {}
         
-        providers_db = db.query(LLMProvider).filter(LLMProvider.user_id == user_id).all()
+        providers_db = db.query(LLMProvider).filter(LLMProvider.user_id == uid).all()
         
-        # Формируем словарь в том же формате, в каком он был раньше (чтобы не ломать UI)
         return {
             p.name: {
                 "type": p.api_type,
-                # ВАЖНО: Мы НЕ расшифровываем ключ для UI, чтобы он не светился на фронте!
-                # Он нужен только в момент отправки запроса в ask_llm.
                 "key": p.api_key, 
                 "base_url": p.base_url,
                 "models": [m.strip() for m in p.models.split(",") if m.strip()]
@@ -123,15 +129,13 @@ def delete_provider(name):
 
 # --- ЕДИНАЯ ТОЧКА ВХОДА ДЛЯ ГЕНЕРАЦИИ ---
 
-def ask_llm(provider_name, model_name, system_prompt, user_prompt):
+def ask_llm(provider_name, model_name, system_prompt, user_prompt, user_id=None):
+    providers = get_providers(user_id)
     """
     Универсальная функция запроса к любой LLM (OpenAI, DeepSeek, Gemini).
     Возвращает (success: bool, content: str).
     """
-    providers = get_providers()
-    
-    if provider_name == "Google Gemini (Legacy)":
-        return False, "Используйте нового провайдера для Gemini"
+    providers = get_providers(user_id)
 
     if provider_name not in providers:
         return False, f"Провайдер '{provider_name}' не найден."

@@ -54,7 +54,34 @@ def wizard_create_chart():
     st.write("### 1. Настройка файла")
     display_title = st.text_input("Название графика (видит пользователь)", placeholder="Динамика Выручки 2024")
     filename_base = st.text_input("Техническое ID файла (латиница)", placeholder="revenue_2024")
-    file = st.file_uploader("Данные", type=["csv", "xlsx"])
+    
+    # --- ВЫБОР ДАННЫХ (ВКЛАДКИ) ---
+    st.write("### Источник данных")
+    db_sources = SessionLocal()
+    try:
+        active_ws_id = st.session_state.get("active_ws_id")
+        available_sources = db_sources.query(DataSource).filter(DataSource.workspace_id == active_ws_id, DataSource.active == True).all()
+    finally:
+        db_sources.close()
+
+    tab_db, tab_up = st.tabs(["🗄️ Выбрать из базы", "📤 Загрузить новый"])
+    selected_db_sources = []
+    up_file = None
+    
+    with tab_db:
+        if available_sources:
+            src_dict = {s.id: s for s in available_sources}
+            sel_ids = st.multiselect(
+                "Выберите готовые источники (можно несколько):", 
+                options=list(src_dict.keys()), 
+                format_func=lambda x: f"{'📄' if src_dict[x].connector_id == 'google_sheets' else '📁'} {src_dict[x].filename}"
+            )
+            selected_db_sources = [src_dict[i] for i in sel_ids]
+        else:
+            st.caption("В этом пространстве пока нет готовых данных.")
+            
+    with tab_up:
+        up_file = st.file_uploader("Загрузить файл", type=["csv", "xlsx"], label_visibility="collapsed")
     
     # 2. Формирование задачи
     st.write("### 2. Формирование задачи")
@@ -238,18 +265,26 @@ def wizard_create_chart():
     btn_manual = c_manual.button("📋 Только промпт")
 
     if btn_auto or btn_manual:
-        if not (display_title and filename_base and file and goal):
-            st.error("Заполните основные поля (Название, ID, Файл, Цель)!")
+        if not (display_title and filename_base and goal) or (not up_file and not selected_db_sources):
+            st.error("Заполните основные поля (Название, ID, Цель) и выберите/загрузите данные!")
             return
 
         current_colors = st.session_state.get("wiz_active_colors", ["#000", "#000", "#000"])
         current_dark_mode = st.session_state.get("wiz_active_dark", False)
         colors_prompt_str = ", ".join(current_colors)
 
-        # 1. СОХРАНЯЕМ ФАЙЛ ДАННЫХ
-        path = os.path.join(DATA_FOLDER, file.name)
-        with open(path, "wb") as f: f.write(file.getbuffer())
-        s3_client.upload_file(path, "data-sources", file.name)
+        # 1. СОХРАНЯЕМ ИЛИ ИЩЕМ ФАЙЛ ДАННЫХ ДЛЯ АНАЛИЗА КОЛОНОК AI
+        target_filename = up_file.name if up_file else selected_db_sources[0].filename
+        path = os.path.join(DATA_FOLDER, target_filename)
+        
+        if up_file:
+            with open(path, "wb") as f: f.write(up_file.getbuffer())
+            s3_client.upload_file(path, "data-sources", target_filename)
+        else:
+            # Если файл из базы, но локально его нет (удалился кэш), скачиваем из S3
+            if not os.path.exists(path):
+                try: s3_client.download_file("data-sources", target_filename, path)
+                except: pass
 
         # 2. ИМЯ ГРАФИКА
         py_name = f"{current_user}_{sanitize_filename(filename_base)}"
@@ -260,7 +295,7 @@ def wizard_create_chart():
             df_preview = pd.read_csv(path, nrows=5) if path.endswith('.csv') else pd.read_excel(path, nrows=5)
             cols_info = "\n".join([f"- `{c}` ({t})" for c, t in zip(df_preview.columns, df_preview.dtypes)])
         except Exception as e:
-            cols_info = f"Error reading cols: {e}"
+            cols_info = f"Нет доступа к колонкам (AI напишет обобщенный код): {e}"
 
         # 4. ФОРМИРОВАНИЕ ПРОМПТА
         if current_dark_mode:
@@ -340,84 +375,104 @@ def wizard_create_chart():
                 "import streamlit as st\ndef render(files, chart_key='default_key'):\n    st.info('График создан (Ручной режим).')\n    return None\n"
             )
             st.session_state.gen_prompt = final_prompt
-            st.success("✅ Заготовка создана!")
+            
+            # Сохраняем файл физически
+            with open(os.path.join(CHARTS_FOLDER, py_name), "w", encoding="utf-8") as f: f.write(file_content)
+            s3_client.put_text("charts", py_name, file_content)
+            
+            # Регистрируем в БД (Синхронно)
+            db = SessionLocal()
+            try:
+                active_ws_id = st.session_state.get("active_ws_id")
+                new_chart = Chart(workspace_id=active_ws_id, technical_name=py_name, display_name=display_title)
+                db.add(new_chart)
+                
+                if up_file:
+                    exist_ds = db.query(DataSource).filter(DataSource.filename == up_file.name, DataSource.workspace_id == active_ws_id).first()
+                    if not exist_ds:
+                        new_ds = DataSource(workspace_id=active_ws_id, connector_id="base", filename=up_file.name, active=True)
+                        db.add(new_ds)
+                        new_chart.data_sources.append(new_ds)
+                    else:
+                        new_chart.data_sources.append(exist_ds)
+                
+                for ds_obj in selected_db_sources:
+                    local_ds = db.query(DataSource).get(ds_obj.id)
+                    if local_ds and local_ds not in new_chart.data_sources:
+                        new_chart.data_sources.append(local_ds)
+                        
+                current_page_name = st.query_params.get("page", "Главная страница")
+                page = db.query(Page).filter(Page.workspace_id == active_ws_id, Page.name == current_page_name).first()
+                if not page:
+                    page = db.query(Page).filter(Page.workspace_id == active_ws_id).first()
+                if page: page.charts.append(new_chart)
+                    
+                db.commit()
+                st.success("✅ Заготовка создана!")
+            finally:
+                db.close()
+            time.sleep(1)
+            st.rerun()
 
         elif btn_auto:
             if not llm_ready:
                 st.error("Сначала настройте AI интеграцию!")
                 return
             
-            with st.spinner(f"🤖 {sel_prov} ({sel_model}) пишет код..."):
-                system_msg = (
-                    "Ты Senior Python Developer. Ты меняешь код Streamlit/Plotly по запросу. "
-                    "Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна.\n"
-                    "ВАЖНО ПО PLOTLY 5.X:\n"
-                    "1. НИКОГДА не используй устаревшие параметры: 'titlefont', 'tickfont' внутри осей.\n"
-                    "2. Правильный синтаксис шрифтов: dict(title=dict(text='Name', font=dict(size=14))).\n"
-                    "3. Вместо 'margin' в layout используй update_layout(margin=dict(l=..., r=...))."
-                )
-                success, result_text = ask_llm(sel_prov, sel_model, system_msg, final_prompt)
+            # 👇 Добавляем тот самый крутящийся кружок!
+            with st.spinner("🤖 Сохраняем данные и отправляем ИИ..."):
                 
-                if success:
-                    code_text = clean_gemini_code(result_text)
-                    safe_prompt = final_prompt.replace('"""', "'''")
-                    file_content = f'"""\n--- GENERATED BY {sel_prov} ({sel_model}) ---\nPROMPT:\n{safe_prompt}\n"""\n\n{code_text}'
-                else:
-                    st.error(f"Ошибка AI: {result_text}")
-                    st.session_state.gen_prompt = final_prompt
-                    return
+                # 1. Сохраняем новые файлы в БД СРАЗУ, чтобы передать их ID в Celery
+                db = SessionLocal()
+                ds_ids = []
+                user_id_for_task = None  
+                try:
+                    user = db.query(User).filter(User.username == current_user).first()
+                    if user:
+                        user_id_for_task = user.id
 
-        # 5. СОХРАНЯЕМ КОД ГРАФИКА
-        with open(os.path.join(CHARTS_FOLDER, py_name), "w", encoding="utf-8") as f:
-            f.write(file_content)
-        s3_client.put_text("charts", py_name, file_content)
-
-        # 6. РЕГИСТРИРУЕМ В БАЗУ ДАННЫХ
-        db = SessionLocal()
-        try:
-            user = db.query(User).filter(User.username == current_user).first()
-            
-            # Создаем или находим источник данных
-            active_ws_id = st.session_state.get("active_ws_id")
-            ds = db.query(DataSource).filter(DataSource.filename == file.name, DataSource.workspace_id == active_ws_id).first()
-            if not ds:
-                ds = DataSource(workspace_id=active_ws_id, connector_id="base", filename=file.name, active=True)
-                db.add(ds)
-                db.flush()
-
-            # Создаем график
-            new_chart = Chart(workspace_id=active_ws_id, technical_name=py_name, display_name=display_title)
-            
-            # Связываем данные с графиком
-            new_chart.data_sources.append(ds)
-            db.add(new_chart)
-            db.flush()
-
-            # Узнаем, на какой странице сейчас находится пользователь
-            current_page_name = st.query_params.get("page", "Главная страница")
-            
-            # Привязываем график именно к текущей странице
-            active_ws_id = st.session_state.get("active_ws_id")
-            page = db.query(Page).filter(Page.workspace_id == active_ws_id, Page.name == current_page_name).first()
-            
-            # Если страница не найдена, берем первую страницу ТЕКУЩЕГО воркспейса
-            if not page:
-                page = db.query(Page).filter(Page.workspace_id == active_ws_id).first()
-            
-            if page:
-                page.charts.append(new_chart)
-            
-            db.commit()
-            st.success(f"✅ График '{display_title}' успешно сохранен и привязан!")
-        except Exception as e:
-            db.rollback()
-            st.error(f"Ошибка сохранения в БД: {e}")
-        finally:
-            db.close()
-            
-        time.sleep(1)
-        st.rerun()
-
+                    active_ws_id = st.session_state.get("active_ws_id")
+                    if up_file:
+                        exist_ds = db.query(DataSource).filter(DataSource.filename == up_file.name, DataSource.workspace_id == active_ws_id).first()
+                        if not exist_ds:
+                            new_ds = DataSource(workspace_id=active_ws_id, connector_id="base", filename=up_file.name, active=True)
+                            db.add(new_ds)
+                            db.commit()
+                            ds_ids.append(new_ds.id)
+                        else:
+                            ds_ids.append(exist_ds.id)
+                            
+                    for ds_obj in selected_db_sources:
+                        ds_ids.append(ds_obj.id)
+                finally:
+                    db.close()
+                
+                # 2. Отправляем тяжелую задачу в REDIS! 🚀
+                from modules.tasks import generate_chart_task
+                current_page_name = st.query_params.get("page", "Главная страница")
+                
+                task = generate_chart_task.delay(
+                    prompt=final_prompt,
+                    py_name=py_name,
+                    display_title=display_title,
+                    sel_prov=sel_prov,
+                    sel_model=sel_model,
+                    active_ws_id=active_ws_id,
+                    current_page_name=current_page_name,
+                    ds_ids=ds_ids,
+                    user_id=user_id_for_task
+                )
+                
+                # Добавляем задачу в трекер на главном экране
+                if "active_tasks" not in st.session_state:
+                    st.session_state.active_tasks = {}
+                st.session_state.active_tasks[task.id] = f"AI код для '{display_title}'"
+                
+                # 👇 Добавляем красивое уведомление об успехе
+                st.toast("✅ Задача успешно отправлена в фон!")
+                time.sleep(0.5) # Даем полсекунды, чтобы пользователь успел увидеть сообщение
+                
+                st.rerun() # Мгновенно закрываем визард!
 
 # --- WIZARD: MANAGE SOURCES ---
 @st.dialog("⚙️ Пайплайн данных", width="large")
