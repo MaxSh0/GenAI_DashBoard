@@ -9,6 +9,7 @@ from code_editor import code_editor
 import shutil
 import pandas as pd
 import random
+import inspect
 # --- ИМПОРТЫ CELERY ---
 from modules.tasks import update_source_task, celery_app
 from celery.result import AsyncResult
@@ -196,37 +197,6 @@ if st.session_state["authentication_status"]:
                         db.commit()
                         st.rerun()
         
-        # --- НЕВИДИМЫЙ ТРЕКЕР ФОНОВЫХ ЗАДАЧ (ДЛЯ ДАННЫХ) ---
-        @st.fragment(run_every=2)
-        def invisible_task_tracker():
-            if not st.session_state.get("active_tasks"):
-                return
-
-            completed_tasks = []
-            for task_id, task_desc in list(st.session_state.active_tasks.items()):
-                # ПРОПУСКАЕМ графики (у них будет свой красивый интерфейс внизу)
-                if str(task_desc).startswith("AI код для"):
-                    continue
-
-                res = AsyncResult(task_id, app=celery_app)
-                
-                if res.ready(): 
-                    result_data = res.result
-                    if result_data and isinstance(result_data, dict) and result_data.get("status"):
-                        st.toast(f"✅ {task_desc} выполнено!")
-                    else:
-                        err_msg = result_data.get('msg') if isinstance(result_data, dict) else 'Неизвестная ошибка'
-                        st.error(f"❌ Ошибка ({task_desc}): {err_msg}")
-                    completed_tasks.append(task_id)
-
-            for t in completed_tasks:
-                del st.session_state.active_tasks[t]
-            
-            if completed_tasks:
-                time.sleep(1)
-                st.rerun()
-
-        invisible_task_tracker()
 
         
         with st.container(height=200, border=True):
@@ -401,11 +371,12 @@ if st.session_state["authentication_status"]:
                 spec.loader.exec_module(mod)
             except Exception as e: st.error(f"Ошибка модуля {fname}: {e}"); continue
 
-            # Проверяем, не редактируется ли этот график прямо сейчас
+            # Задачи для этого графика
             edit_task_desc = f"Редактирование графика '{chart_db.display_name}'|{chart_db.id}"
             is_editing = edit_task_desc in st.session_state.get("active_tasks", {}).values()
 
-            c_title, c_edit, c_ai, c_exp, c_chat, c_del = st.columns([0.60, 0.08, 0.08, 0.08, 0.08, 0.08], vertical_alignment="center")
+            # Колонки управления
+            c_title, c_edit, c_ai, c_chat, c_exp, c_del = st.columns([0.60, 0.08, 0.08, 0.08, 0.08, 0.08], vertical_alignment="center")
             
             with c_title: 
                 if is_editing:
@@ -418,60 +389,12 @@ if st.session_state["authentication_status"]:
                     if n_title := st.text_input("Имя:", value=chart_db.display_name, key=f"r_{chart_db.id}"):
                         if st.button("OK", key=f"bo_{chart_db.id}"): chart_db.display_name = n_title; db.commit(); st.rerun()
             
-            with c_exp:
-                with st.popover("📦"):
-                    t_html, t_geb = st.tabs(["HTML", "GEB"])
-                    with t_html: 
-                        html_placeholder = st.empty()
-                        html_placeholder.info("Отрисовка...")
-                    with t_geb:
-                        try:
-                            geb_data = BundleManager.export_chart(fname).getvalue()
-                            st.download_button("Скачать .geb", data=geb_data, file_name=f"{fname[:-3]}.geb", mime="application/zip", type="primary", key=f"geb_{chart_db.id}", use_container_width=True)
-                        except Exception as e: st.error(e)
-            with c_chat:
-                # Проверяем, не идет ли уже анализ этого графика
-                analyze_task_desc = f"Анализ данных '{chart_db.display_name}'|{chart_db.id}"
-                is_analyzing = analyze_task_desc in st.session_state.get("active_tasks", {}).values()
-                
-                if is_analyzing:
-                    st.button("⌛", key=f"btn_chat_{chart_db.id}", disabled=True, help="Анализ в процессе...")
-                else:
-                    if st.button("💬", key=f"btn_chat_{chart_db.id}", help="Получить инсайты от AI"):
-                        # Подготовка данных (берем первые 50 строк)
-                        data_sample = "Нет данных"
-                        if chart_db.data_sources:
-                            try:
-                                d_path = os.path.join(DATA_FOLDER, chart_db.data_sources[0].filename)
-                                df_s = pd.read_csv(d_path, nrows=50) if d_path.endswith('.csv') else pd.read_excel(d_path, nrows=50)
-                                data_sample = df_s.to_csv(index=False)
-                            except: pass
-                        
-                        with open(fpath, "r", encoding="utf-8") as f: chart_code = f.read()
-                        
-                        # Выбираем модель (берем ту же, что в AI чате или дефолтную)
-                        prov_list = list(providers.keys())
-                        p_name = st.session_state.get("chat_prov", prov_list[0])
-                        m_name = st.session_state.get("chat_mod", providers[p_name]["models"][0])
-
-                        from modules.tasks import analyze_chart_task
-                        task = analyze_chart_task.delay(
-                            chart_id=chart_db.id,
-                            code=chart_code,
-                            data_sample_str=data_sample,
-                            user_id=user_obj.id,
-                            sel_prov=p_name,
-                            sel_model=m_name
-                        )
-                        st.session_state.active_tasks[task.id] = analyze_task_desc
-                        st.rerun()
-                        
+            # --- 1. КНОПКА РЕДАКТИРОВАНИЯ ---
             with c_ai:
                 with st.popover("✨"):
                     if is_editing:
                         st.status("🤖 ИИ пишет код...", state="running")
                     else:
-                        # ОТКАТ (Работает, если есть бэкап в памяти)
                         if fname in st.session_state.chart_backups:
                             if st.button("↩️ Откат", key=f"u_{chart_db.id}", use_container_width=True):
                                 with open(fpath, "w", encoding="utf-8") as f: 
@@ -487,51 +410,72 @@ if st.session_state["authentication_status"]:
                             if st.button("🚀 Выполнить", key=f"b_ai_{chart_db.id}", type="primary"):
                                 with open(fpath, "r", encoding="utf-8") as f: cur_code = f.read()
                                 st.session_state.chart_backups[fname] = cur_code
-                                
                                 data_ctx = "Нет данных"
                                 if chart_db.data_sources:
-                                    d_path = os.path.join(DATA_FOLDER, chart_db.data_sources[0].filename)
                                     try:
+                                        d_path = os.path.join(DATA_FOLDER, chart_db.data_sources[0].filename)
                                         df_p = pd.read_csv(d_path, nrows=3) if d_path.endswith('.csv') else pd.read_excel(d_path, nrows=3)
                                         data_ctx = "\n".join([f"- {c} ({t})" for c, t in zip(df_p.columns, df_p.dtypes)])
                                     except: pass
                                 
                                 pmt = f"### ТЕКУЩИЙ КОД:\n```python\n{cur_code}\n```\n\n### ДАННЫЕ:\n{data_ctx}\n\n### ЗАПРОС:\n\"{req}\"\n"
                                 sys_msg = "Ты Senior Python Developer. Верни ТОЛЬКО валидный код модуля (def render). В конце верни fig."
-                                
                                 from modules.tasks import edit_chart_task
-                                task = edit_chart_task.delay(
-                                    prompt=pmt, 
-                                    sys_msg=sys_msg, 
-                                    fname=fname, 
-                                    sel_prov=r_p, 
-                                    sel_model=r_m, 
-                                    user_id=user_obj.id
-                                )
-                                
+                                task = edit_chart_task.delay(prompt=pmt, sys_msg=sys_msg, fname=fname, sel_prov=r_p, sel_model=r_m, user_id=user_obj.id)
                                 st.session_state.active_tasks[task.id] = edit_task_desc
                                 st.rerun()
+
+            # --- 2. НОВАЯ КНОПКА АНАЛИЗА ---
+            with c_chat:
+                with st.popover("💬"):
+                    analyze_task_desc = f"Анализ данных '{chart_db.display_name}'|{chart_db.id}"
+                    is_analyzing = any(analyze_task_desc == str(v) for v in st.session_state.get("active_tasks", {}).values())
+                    
+                    if is_analyzing:
+                        st.status("🤖 ИИ анализирует...", state="running")
+                    else:
+                        if not providers: st.error("Нет AI")
+                        else:
+                            # Уникальные ключи для селекторов анализа
+                            p_chat = st.selectbox("AI", list(providers.keys()), key=f"pc_{chart_db.id}", label_visibility="collapsed")
+                            m_chat = st.selectbox("Mod", providers[p_chat]["models"], key=f"mc_{chart_db.id}", label_visibility="collapsed")
+                            if st.button("🚀 Анализ", key=f"b_an_{chart_db.id}", type="primary"):
+                                data_sample = "Нет данных"
+                                if chart_db.data_sources:
+                                    try:
+                                        d_path = os.path.join(DATA_FOLDER, chart_db.data_sources[0].filename)
+                                        df_s = pd.read_csv(d_path, nrows=50) if d_path.endswith('.csv') else pd.read_excel(d_path, nrows=50)
+                                        data_sample = df_s.to_csv(index=False)
+                                    except: pass
+                                
+                                with open(fpath, "r", encoding="utf-8") as f: chart_code = f.read()
+                                from modules.tasks import analyze_chart_task
+                                task = analyze_chart_task.delay(chart_id=chart_db.id, code=chart_code, data_sample_str=data_sample, user_id=user_obj.id, sel_prov=p_chat, sel_model=m_chat)
+                                st.session_state.active_tasks[task.id] = analyze_task_desc
+                                st.rerun()
+
+            with c_exp:
+                with st.popover("📦"):
+                    t_html, t_geb = st.tabs(["HTML", "GEB"])
+                    with t_html: 
+                        html_placeholder = st.empty()
+                        html_placeholder.info("Отрисовка...")
+                    with t_geb:
+                        try:
+                            geb_data = BundleManager.export_chart(fname).getvalue()
+                            st.download_button("Скачать .geb", data=geb_data, file_name=f"{fname[:-3]}.geb", mime="application/zip", type="primary", key=f"geb_{chart_db.id}", use_container_width=True)
+                        except Exception as e: st.error(e)
 
             with c_del:
                 with st.popover("🗑️"):
                     st.write(f"Удалить **{chart_db.display_name}**?")
                     if st.button("🔥 Да", key=f"del_{chart_db.id}", type="primary"):
-                        # 1. Удаляем физические файлы
                         if os.path.exists(fpath): os.remove(fpath)
-                        try:
-                            s3_client.delete_file("charts", fname)
-                        except:
-                            pass # Если файла там уже нет, игнорируем ошибку
-
-                        # 2. ОТВЯЗЫВАЕМ ГРАФИК ОТ ВСЕХ СТРАНИЦ
+                        try: s3_client.delete_file("charts", fname)
+                        except: pass
                         linked_pages = db.query(Page).filter(Page.charts.contains(chart_db)).all()
-                        for p in linked_pages:
-                            p.charts.remove(chart_db)
-                        
-                        # 3. ОТВЯЗЫВАЕМ ОТ ВСЕХ ИСТОЧНИКОВ ДАННЫХ
+                        for p in linked_pages: p.charts.remove(chart_db)
                         chart_db.data_sources = []
-                        
-                        # 4. Теперь безопасно удаляем сам график
                         db.delete(chart_db)
                         db.commit()
                         st.rerun()
@@ -547,70 +491,73 @@ if st.session_state["authentication_status"]:
                         st.session_state[ver_key] += 1; st.rerun()
             except Exception as e: st.warning(f"Ошибка редактора: {e}")
 
-            # Рендер
+            # Рендер графика
             if hasattr(mod, "render"):
-                # ✅ БЕРЕМ ФАЙЛЫ ДЛЯ ГРАФИКА НАПРЯМУЮ ИЗ БАЗЫ!
                 source_paths = [os.path.join(DATA_FOLDER, ds.filename) for ds in chart_db.data_sources]
-                
-                # Sandboxing...
                 WIDGETS = ["button", "checkbox", "radio", "selectbox", "multiselect", "slider", "select_slider", "text_input", "number_input", "text_area", "date_input", "time_input", "file_uploader", "color_picker", "toggle", "plotly_chart", "data_editor"]
                 orig_funcs = {name: getattr(st, name) for name in WIDGETS if hasattr(st, name)}
+                orig_sidebar = st.sidebar 
+
+                class SidebarProxy:
+                    def __getattr__(self, name): return getattr(st, name)
+
                 u_suffix = f"chart_inst_{chart_db.id}"
-                
                 def create_patch(func, sfx):
                     def patched(*args, **kwargs):
-                        # Если в коде графика уже прописан key, добавляем к нему суффикс
-                        if "key" in kwargs and kwargs["key"] is not None:
-                            kwargs["key"] = f"{kwargs['key']}_{sfx}"
-                        else:
-                            # Если ключа нет, создаем его на основе метки (label)
-                            label_part = str(kwargs.get('label', 'w'))[:10]
-                            kwargs["key"] = f"auto_{label_part}_{sfx}"
+                        kwargs["key"] = f"{kwargs.get('key', 'auto_' + str(kwargs.get('label', 'w'))[:10])}_{sfx}"
                         return func(*args, **kwargs)
                     return patched
-                
+
                 for n, f in orig_funcs.items(): setattr(st, n, create_patch(f, u_suffix))
-                
+                st.sidebar = SidebarProxy() 
+
                 try:
-                    import inspect
-                    sig = inspect.signature(mod.render)
                     c_args = {"files": source_paths}
-                    if "chart_key" in sig.parameters: c_args["chart_key"] = fname
-                    if "theme" in sig.parameters: c_args["theme"] = "plotly_dark" if is_dark else "plotly_white"
-                    if "return_fig" in sig.parameters: c_args["return_fig"] = False
+                    if "chart_key" in inspect.signature(mod.render).parameters: c_args["chart_key"] = fname
                     
-                    # 1. Отрисовываем график
                     fig = mod.render(**c_args)
                     
-                    # 2. Если график успешно вернул объект (fig), отдаем его в кнопку HTML!
                     if fig:
                         from modules.utils import ChartExporter
                         html_data = ChartExporter.export_to_html(fig, app_theme_is_dark=is_dark)
-                        # Заменяем текст "Отрисовка..." на реальную кнопку скачивания
-                        html_placeholder.download_button(
-                            label="⬇️ Скачать HTML", 
-                            data=html_data, 
-                            file_name=f"{fname[:-3]}.html", 
-                            mime="text/html", 
-                            key=f"dl_html_{chart_db.id}", 
+                        html_placeholder.download_button("⬇️ HTML", data=html_data, file_name=f"{fname[:-3]}.html", mime="text/html", key=f"dl_h_{chart_db.id}", use_container_width=True)
+
+                except Exception as e: 
+                    st.error(f"Ошибка рендера: {e}")
+                finally:
+                    # ВОЗВРАЩАЕМ СТАНДАРТНЫЕ ФУНКЦИИ
+                    for n, f in orig_funcs.items(): setattr(st, n, f)
+                    st.sidebar = orig_sidebar
+
+            # --- ОТОБРАЖЕНИЕ ИНСАЙТОВ ---
+            ins_key = f"insight_{chart_db.id}"
+            if ins_key in st.session_state:
+                st.write("") # Небольшой отступ
+                
+                # 🚨 ИСПРАВЛЕНИЕ: Делаем заголовок экспандера уникальным! 🚨
+                with st.expander(f"🤖 Анализ: {chart_db.display_name}", expanded=True):
+                    insight_text = st.session_state[ins_key]
+                    
+                    st.markdown(insight_text)
+                    st.divider() 
+                    
+                    col_dl, col_cls, _ = st.columns([0.2, 0.2, 0.6])
+                    with col_dl:
+                        safe_name = sanitize_filename(chart_db.display_name)
+                        st.download_button(
+                            label="💾 Скачать (.md)",
+                            data=insight_text,
+                            file_name=f"AI_Insight_{safe_name}.md",
+                            mime="text/markdown",
+                            key=f"dl_ins_{chart_db.id}",
                             use_container_width=True
                         )
-                    # --- БЛОК ИНСАЙТОВ ---
-                    insight_key = f"insight_{chart_db.id}"
-                    if insight_key in st.session_state:
-                        st.write("") # Небольшой отступ
-                        with st.chat_message("assistant", avatar="🤖"):
-                            st.markdown(f"**Аналитический разбор:**\n\n{st.session_state[insight_key]}")
-                            if st.button("Закрыть анализ", key=f"close_ins_{chart_db.id}", type="secondary"):
-                                del st.session_state[insight_key]
-                                st.rerun()
+                    with col_cls:
+                        if st.button("❌ Убрать", key=f"cls_ins_{chart_db.id}", use_container_width=True):
+                            del st.session_state[ins_key]
+                            st.rerun()
 
-                except Exception as e: st.error(f"Ошибка рендера: {e}")
-                finally:
-                    for n, f in orig_funcs.items(): setattr(st, n, f)
-
-        # --- НЕВИДИМЫЙ ТРЕКЕР ФОНОВЫХ ЗАДАЧ (ДЛЯ ДАННЫХ И РЕДАКТИРОВАНИЯ) ---
-        # --- НЕВИДИМЫЙ ТРЕКЕР ФОНОВЫХ ЗАДАЧ (ДАННЫЕ, РЕДАКТИРОВАНИЕ, АНАЛИЗ) ---
+        # --- ГЛАВНЫЙ ТРЕКЕР ФОНОВЫХ ЗАДАЧ ---
         @st.fragment(run_every=2)
         def invisible_task_tracker():
             if not st.session_state.get("active_tasks"):
@@ -618,51 +565,48 @@ if st.session_state["authentication_status"]:
 
             completed_tasks = []
             for task_id, task_desc in list(st.session_state.active_tasks.items()):
-                # 1. Игнорируем ТОЛЬКО создание новых графиков (их ловит визуальный трекер внизу)
-                if str(task_desc).startswith("Создание графика"):
+                desc_str = str(task_desc)
+                
+                # 🚨 ИСПРАВЛЕНИЕ: Игнорируем ОБА названия задач для новых графиков
+                if desc_str.startswith("Создание") or desc_str.startswith("AI код"): 
                     continue
 
                 res = AsyncResult(task_id, app=celery_app)
-                
                 if res.ready(): 
-                    result_data = res.result
-                    
-                    # Разбираем техническую строку (имя|ID)
-                    desc_parts = str(task_desc).split("|")
-                    clean_desc = desc_parts[0]
-                    chart_id = desc_parts[1] if len(desc_parts) > 1 else None
-                    
-                    if result_data and isinstance(result_data, dict) and result_data.get("status"):
-                        # СПЕЦИФИКА: Если это был анализ графика — сохраняем текст инсайта в сессию
-                        if "Анализ данных" in clean_desc:
-                            # Мы используем ID из данных задачи, если в результате его нет
-                            cid = result_data.get("chart_id") or chart_id
-                            st.session_state[f"insight_{cid}"] = result_data.get("msg")
-                        
-                        # СПЕЦИФИКА: Если редактирование — сбрасываем кэш редактора
-                        if "Редактирование" in clean_desc and chart_id:
-                            v_key = f"ver_{chart_id}"
-                            st.session_state[v_key] = st.session_state.get(v_key, 0) + 1
+                    try:
+                        r_data = res.result
+                        c_desc, c_id = desc_str.split("|") if "|" in desc_str else (desc_str, None)
 
-                        st.toast(f"✅ {clean_desc} выполнено!")
-                    else:
-                        err_msg = result_data.get('msg') if isinstance(result_data, dict) else 'Неизвестная ошибка'
-                        st.error(f"❌ Ошибка ({clean_desc}): {err_msg}")
+                        if r_data and isinstance(r_data, dict) and r_data.get("status"):
+                            if "Анализ данных" in c_desc:
+                                # 🚨 ИСПРАВЛЕНИЕ: Железно конвертируем ID в строку без пробелов
+                                target_id = str(r_data.get("chart_id") or c_id).strip()
+                                st.session_state[f"insight_{target_id}"] = r_data.get("msg")
+                                st.toast(f"💡 Анализ готов!")
+                            elif "Редактирование" in c_desc and c_id:
+                                st.session_state[f"ver_{c_id}"] = st.session_state.get(f"ver_{c_id}", 0) + 1
+                                st.toast(f"✅ График обновлен!")
+                            else:
+                                st.toast(f"✅ {c_desc} завершено!")
+                        else:
+                            err_msg = r_data.get('msg') if isinstance(r_data, dict) else 'Ошибка выполнения'
+                            st.error(f"❌ Ошибка ({c_desc}): {err_msg}")
+                    except Exception as e: 
+                        pass # Глушим ошибки парсинга, чтобы трекер не падал
                     
                     completed_tasks.append(task_id)
 
-            # Чистим список активных задач
             for t in completed_tasks:
-                del st.session_state.active_tasks[t]
+                if t in st.session_state.active_tasks: 
+                    del st.session_state.active_tasks[t]
             
-            # Если что-то завершилось — обновляем страницу
             if completed_tasks:
-                time.sleep(1)
-                st.rerun()
+                time.sleep(0.5)
+                st.rerun(scope="app") # Обновляем ВСЮ страницу
 
         invisible_task_tracker()
 
-        # --- ВИЗУАЛЬНЫЙ ТРЕКЕР ГЕНЕРАЦИИ ГРАФИКОВ (Для новых) ---
+        # --- ТРЕКЕР ГЕНЕРАЦИИ НОВЫХ ГРАФИКОВ ---
         @st.fragment(run_every=2)
         def visual_chart_tracker():
             if not st.session_state.get("active_tasks"):
@@ -670,21 +614,15 @@ if st.session_state["authentication_status"]:
             
             completed_charts = []
             for task_id, task_desc in list(st.session_state.active_tasks.items()):
-                # 1. Отсекаем задачи, которые НЕ относятся к графикам
-                if "графика" not in str(task_desc).lower() and "ai код" not in str(task_desc).lower():
-                    continue
+                desc_str = str(task_desc)
                 
-                # 2. Отсекаем задачи РЕДАКТИРОВАНИЯ (у них есть символ |)
-                # Их мы не рисуем внизу, так как они отображаются поверх существующих графиков
-                if "|" in str(task_desc):
+                # 🚨 ИСПРАВЛЕНИЕ: Ловим ОБА варианта названий
+                if not (desc_str.startswith("Создание") or desc_str.startswith("AI код")): 
                     continue
                     
                 res = AsyncResult(task_id, app=celery_app)
+                display_name = desc_str.replace("Создание графика ", "").replace("AI код для ", "").strip("'")
                 
-                # Чистим имя для отображения
-                display_name = str(task_desc).replace("Создание графика ", "").replace("AI код для ", "").strip("'")
-                
-                # РИСУЕМ СКЕЛЕТ (Placeholder)
                 st.markdown("---")
                 col1, col2 = st.columns([0.7, 0.3], vertical_alignment="center")
                 col1.subheader(f"📌 {display_name}")
@@ -693,26 +631,24 @@ if st.session_state["authentication_status"]:
                     if not res.ready():
                         st.status("🤖 Генерируем новый график...", state="running", expanded=False)
                     else:
-                        result_data = res.result
-                        if result_data and isinstance(result_data, dict) and result_data.get("status"):
-                            st.status("✅ Готово! Отрисовываю...", state="complete", expanded=False)
+                        r_data = res.result
+                        if r_data and isinstance(r_data, dict) and r_data.get("status"):
+                            st.status("✅ Готово!", state="complete", expanded=False)
                         else:
-                            err_msg = result_data.get('msg') if isinstance(result_data, dict) else 'Ошибка API'
+                            err_msg = r_data.get('msg') if isinstance(r_data, dict) else 'Ошибка API'
                             st.status(f"❌ Ошибка: {err_msg}", state="error", expanded=False)
-                        
+                            
                         completed_charts.append(task_id)
             
-            # Чистим завершенные задачи
             for t in completed_charts:
-                del st.session_state.active_tasks[t]
+                if t in st.session_state.active_tasks:
+                    del st.session_state.active_tasks[t]
             
-            # Если что-то завершилось — делаем общий реран, чтобы график появился в основном списке
             if completed_charts:
                 time.sleep(1.5)
-                st.rerun()
+                st.rerun(scope="app") # Обновляем ВСЮ страницу
 
         visual_chart_tracker()
-    
     # --- TAB 2: ETL ---
     with tab_etl:
         st.write("🛠️ **Редактор ETL**")
