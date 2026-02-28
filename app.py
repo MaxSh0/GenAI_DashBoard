@@ -267,10 +267,27 @@ if st.session_state["authentication_status"]:
         st.header("📥 Импорт графиков")
         with st.expander("Загрузить (.geb)"):
             if up_geb := st.file_uploader("Загрузить файл", type=["geb", "zip"], label_visibility="collapsed"):
-                if st.button("Установить", use_container_width=True):
-                    success, msg = BundleManager.import_bundle(up_geb, target_page=current_page_name)
-                    if success: st.success("Готово!"); time.sleep(1); st.rerun()
-                    else: st.error(msg)
+                if st.button("Установить", use_container_width=True, type="primary"):
+                    
+                    # Переводим файл в текст для передачи в Celery
+                    import base64
+                    b64_data = base64.b64encode(up_geb.read()).decode("utf-8")
+                    
+                    from modules.tasks import import_bundle_task
+                    
+                    # Отправляем в фон!
+                    task = import_bundle_task.delay(
+                        b64_data=b64_data, 
+                        workspace_id=st.session_state.active_ws_id, 
+                        target_page=current_page_name
+                    )
+                    
+                    # Регистрируем в нашем трекере
+                    st.session_state.active_tasks[task.id] = f"Импорт архива '{up_geb.name}'"
+                    
+                    st.toast("📦 Архив отправлен на распаковку!")
+                    time.sleep(0.5)
+                    st.rerun()
 
         # 🔗 УПРАВЛЕНИЕ СВЯЗЯМИ (Графики ↔ Данные)
         st.divider()

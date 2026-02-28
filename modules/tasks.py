@@ -1,14 +1,16 @@
 import os
 from celery import Celery
+import base64
+import io
+
 from modules.db_manager import SessionLocal
 from modules.models import DataSource
-# Импортируем нашу тяжелую функцию из загрузчика данных
 from modules.data_loader import sync_single_source
-
 from modules.llm_manager import ask_llm
 from modules.s3_storage import s3_client
 from modules.settings import CHARTS_FOLDER
 from modules.models import Page, Chart, DataSource
+from modules.io_manager import BundleManager
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
@@ -186,6 +188,28 @@ def analyze_chart_task(self, chart_id, code, data_sample_str, user_id, sel_prov,
             return {"status": True, "msg": result_text, "chart_id": chart_id}
         else:
             return {"status": False, "msg": f"Ошибка AI: {result_text}"}
+            
+    except Exception as e:
+        return {"status": False, "msg": str(e)}
+
+
+
+
+@celery_app.task(name="import_bundle_task", bind=True)
+def import_bundle_task(self, b64_data, workspace_id, target_page):
+    """Фоновая задача для импорта .geb архивов"""
+    try:
+        # Декодируем Base64 обратно в бинарный файл
+        file_bytes = base64.b64decode(b64_data)
+        file_io = io.BytesIO(file_bytes)
+        
+        # Запускаем нашу исправленную функцию
+        success, msg = BundleManager.import_bundle(file_io, workspace_id, target_page)
+        
+        if success:
+            return {"status": True, "msg": f"Импорт завершен"}
+        else:
+            return {"status": False, "msg": msg}
             
     except Exception as e:
         return {"status": False, "msg": str(e)}

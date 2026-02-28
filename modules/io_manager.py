@@ -93,23 +93,14 @@ class BundleManager:
             db.close()
 
     @staticmethod
-    def import_bundle(uploaded_file, target_page=None):
+    def import_bundle(file_bytes, workspace_id, target_page=None):
         """Распаковка, сохранение в S3 и запись в Базу Данных"""
         log_messages = []
         new_charts_list = [] 
 
-        if "username" not in st.session_state:
-            return False, "❌ Сессия не найдена. Пожалуйста, перезайдите."
-
-        current_username = st.session_state["username"]
         db = SessionLocal()
-
         try:
-            user = db.query(User).filter(User.username == current_username).first()
-            if not user:
-                return False, "❌ Пользователь не найден в БД."
-
-            with zipfile.ZipFile(uploaded_file, "r") as zf:
+            with zipfile.ZipFile(file_bytes, "r") as zf:
                 if "manifest.json" not in zf.namelist():
                     return False, "❌ Нет manifest.json"
                 
@@ -123,8 +114,8 @@ class BundleManager:
                     # --- 1. ОБРАБОТКА КОДА ---
                     final_chart_name = orig_fname
                     
-                    # Проверяем на дубликаты в БД
-                    existing_chart = db.query(Chart).filter(Chart.user_id == user.id, Chart.technical_name == final_chart_name).first()
+                    # Проверяем на дубликаты в БД (ТЕПЕРЬ ПО WORKSPACE_ID)
+                    existing_chart = db.query(Chart).filter(Chart.workspace_id == workspace_id, Chart.technical_name == final_chart_name).first()
                     if existing_chart:
                         timestamp = int(time.time())
                         final_chart_name = f"{orig_fname[:-3]}_imp_{timestamp}.py"
@@ -135,11 +126,8 @@ class BundleManager:
                     try:
                         code_bytes = zf.read(f"source/{orig_fname}")
                         code_str = code_bytes.decode("utf-8")
-                        
-                        # Уникализируем ключи в коде
                         code_fixed = BundleManager._randomize_widget_keys(code_str)
                         
-                        # Сохраняем локально и в S3
                         with open(target_chart_path, "w", encoding="utf-8") as f:
                             f.write(code_fixed)
                         s3_client.put_text("charts", final_chart_name, code_fixed)
@@ -173,10 +161,10 @@ class BundleManager:
                                     f.write(data_bytes)
                                 s3_client.upload_file(target_data_path, "data-sources", final_df_name)
                             
-                            # Создаем или находим источник в БД
-                            ds = db.query(DataSource).filter(DataSource.user_id == user.id, DataSource.filename == final_df_name).first()
+                            # Создаем или находим источник в БД (ТЕПЕРЬ ПО WORKSPACE_ID)
+                            ds = db.query(DataSource).filter(DataSource.workspace_id == workspace_id, DataSource.filename == final_df_name).first()
                             if not ds:
-                                ds = DataSource(user_id=user.id, connector_id="base", filename=final_df_name, active=True)
+                                ds = DataSource(workspace_id=workspace_id, connector_id="base", filename=final_df_name, active=True)
                                 db.add(ds)
                                 db.flush() # Получаем ID
                             
@@ -187,7 +175,7 @@ class BundleManager:
 
                     # --- 3. ЗАПИСЬ ГРАФИКА В БД ---
                     new_chart = Chart(
-                        user_id=user.id,
+                        workspace_id=workspace_id, # ТЕПЕРЬ WORKSPACE_ID
                         technical_name=final_chart_name,
                         display_name=f"{display_name} (Import)" if "imp_" in final_chart_name else display_name
                     )
@@ -198,9 +186,9 @@ class BundleManager:
                 
                 # --- 4. ДОБАВЛЕНИЕ НА СТРАНИЦУ ---
                 if target_page and new_charts_list:
-                    page = db.query(Page).filter(Page.user_id == user.id, Page.name == target_page).first()
+                    page = db.query(Page).filter(Page.workspace_id == workspace_id, Page.name == target_page).first()
                     if not page:
-                        page = Page(user_id=user.id, name=target_page)
+                        page = Page(workspace_id=workspace_id, name=target_page)
                         db.add(page)
                     
                     for ch in new_charts_list:
@@ -209,8 +197,8 @@ class BundleManager:
                             
                     log_messages.append(f"📌 Добавлено на страницу '{target_page}'")
 
-                db.commit()
-                return True, "\n".join(log_messages)
+            db.commit()
+            return True, "\n".join(log_messages)
 
         except Exception as e:
             db.rollback()
