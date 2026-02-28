@@ -213,3 +213,22 @@ def import_bundle_task(self, b64_data, workspace_id, target_page):
             
     except Exception as e:
         return {"status": False, "msg": str(e)}
+
+
+
+@celery_app.task(name="chat_llm_task", bind=True)
+def chat_llm_task(self, sel_prov, sel_model, history_context, user_prompt, user_id=None):
+    """Фоновая задача для свободного чата с ИИ"""
+    try:
+        system_msg = "You are a helpful assistant."
+        full_prompt = f"HISTORY:\n{history_context}\nREQUEST:\n{user_prompt}"
+        
+        success, resp = ask_llm(sel_prov, sel_model, system_msg, full_prompt, user_id=user_id)
+        
+        if success:
+            return {"status": True, "msg": resp}
+        else:
+            return {"status": False, "msg": f"Ошибка AI: {resp}"}
+            
+    except Exception as e:
+        return {"status": False, "msg": str(e)}

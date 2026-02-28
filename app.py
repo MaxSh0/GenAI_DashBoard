@@ -336,24 +336,49 @@ if st.session_state["authentication_status"]:
 
                 if "msgs" not in st.session_state: st.session_state.msgs = []
                 if st.button("🗑️ Очистить"): st.session_state.msgs = []; st.rerun()
-                for m in st.session_state.msgs: st.chat_message(m["role"]).write(m["content"])
+                
+                # Выводим историю
+                for m in st.session_state.msgs: 
+                    st.chat_message(m["role"]).write(m["content"])
 
-                def send_to_llm(p_text):
+                # Проверяем, не генерируется ли ответ прямо сейчас
+                is_chatting = any(v == "Чат с ИИ" for v in st.session_state.get("active_tasks", {}).values())
+                
+                if is_chatting:
+                    with st.chat_message("assistant", avatar="🤖"):
+                        st.markdown("✍️ *ИИ печатает...*")
+
+                def send_to_llm_bg(p_text):
                     ctx = "\n".join([f"{'User' if m['role']=='user' else 'AI'}: {m['content']}" for m in st.session_state.msgs[-4:]])
-                    success, resp = ask_llm(sel_prov, sel_model, "You are a helpful assistant.", f"HISTORY:\n{ctx}\nREQUEST:\n{p_text}")
-                    if success: st.session_state.msgs.append({"role": "assistant", "content": resp}); st.rerun()
-                    else: st.error(resp)
+                    
+                    from modules.tasks import chat_llm_task
+                    # Отправляем в фон!
+                    task = chat_llm_task.delay(
+                        sel_prov=sel_prov,
+                        sel_model=sel_model,
+                        history_context=ctx,
+                        user_prompt=p_text,
+                        user_id=user_obj.id
+                    )
+                    st.session_state.active_tasks[task.id] = "Чат с ИИ"
+                    st.rerun()
 
                 if draft := st.session_state.get("gen_prompt"):
                     st.info("✨ Черновик")
                     d_txt = st.text_area("Текст:", value=draft, height=150)
                     c_s, c_c = st.columns([0.4, 0.6])
-                    if c_s.button("🚀 Отправить", type="primary", use_container_width=True):
-                        del st.session_state.gen_prompt; st.session_state.msgs.append({"role": "user", "content": d_txt}); send_to_llm(d_txt)
-                    if c_c.button("❌ Отмена", use_container_width=True): del st.session_state.gen_prompt; st.rerun()
+                    # Блокируем кнопку, если ИИ уже думает
+                    if c_s.button("🚀 Отправить", type="primary", use_container_width=True, disabled=is_chatting):
+                        del st.session_state.gen_prompt
+                        st.session_state.msgs.append({"role": "user", "content": d_txt})
+                        send_to_llm_bg(d_txt)
+                    if c_c.button("❌ Отмена", use_container_width=True): 
+                        del st.session_state.gen_prompt; st.rerun()
 
-                if p := st.chat_input("Вопрос..."):
-                    st.session_state.msgs.append({"role": "user", "content": p}); send_to_llm(p)
+                # Блокируем инпут, если ИИ уже думает
+                if p := st.chat_input("Вопрос...", disabled=is_chatting):
+                    st.session_state.msgs.append({"role": "user", "content": p})
+                    send_to_llm_bg(p)
 
     # ==================== MAIN ====================
     st.title(f"📊 {current_page_obj.name}")
@@ -651,18 +676,26 @@ if st.session_state["authentication_status"]:
 
                         if r_data and isinstance(r_data, dict) and r_data.get("status"):
                             if "Анализ данных" in c_desc:
-                                # 🚨 ИСПРАВЛЕНИЕ: Железно конвертируем ID в строку без пробелов
-                                target_id = str(r_data.get("chart_id") or c_id).strip()
+                                target_id = str(c_id).strip() if c_id else str(r_data.get("chart_id")).strip()
                                 st.session_state[f"insight_{target_id}"] = r_data.get("msg")
                                 st.toast(f"💡 Анализ готов!")
-                            elif "Редактирование" in c_desc and c_id:
+                            elif "Редактирование" in c_desc:
                                 st.session_state[f"ver_{c_id}"] = st.session_state.get(f"ver_{c_id}", 0) + 1
                                 st.toast(f"✅ График обновлен!")
+                            # 🚨 НОВОЕ: Обрабатываем ответ чата 🚨
+                            elif "Чат с ИИ" in c_desc:
+                                if "msgs" not in st.session_state: st.session_state.msgs = []
+                                st.session_state.msgs.append({"role": "assistant", "content": r_data.get("msg")})
+                                # Тост не выводим, чат обновится сам
                             else:
                                 st.toast(f"✅ {c_desc} завершено!")
                         else:
-                            err_msg = r_data.get('msg') if isinstance(r_data, dict) else 'Ошибка выполнения'
-                            st.error(f"❌ Ошибка ({c_desc}): {err_msg}")
+                            # 🚨 НОВОЕ: Обрабатываем ошибку чата
+                            if "Чат с ИИ" in c_desc:
+                                if "msgs" not in st.session_state: st.session_state.msgs = []
+                                st.session_state.msgs.append({"role": "assistant", "content": f"❌ Ошибка: {r_data.get('msg')}"})
+                            else:
+                                st.error(f"❌ Ошибка")
                     except Exception as e: 
                         pass # Глушим ошибки парсинга, чтобы трекер не падал
                     
