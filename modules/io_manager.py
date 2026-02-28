@@ -37,8 +37,8 @@ class BundleManager:
             return code_str
 
     @staticmethod
-    def export_chart(filename):
-        """Упаковка графика в .geb (ZIP архив) на основе связей из БД"""
+    def export_chart_to_s3(filename):
+        """Фоновая сборка архива прямо на диске (без перегрузки оперативной памяти)"""
         db = SessionLocal()
         try:
             chart = db.query(Chart).filter(Chart.technical_name == filename).first()
@@ -61,34 +61,35 @@ class BundleManager:
                 ]
             }
 
-            buffer = io.BytesIO()
-            with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+            # Создаем временный файл на диске
+            export_filename = f"export_{filename[:-3]}_{int(time.time())}.geb"
+            export_path = os.path.join(DATA_FOLDER, export_filename)
+
+            # Пишем zip прямо на диск (это спасет от Out Of Memory)
+            with zipfile.ZipFile(export_path, "w", zipfile.ZIP_DEFLATED) as zf:
                 zf.writestr("manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False))
                 
-                # --- Код графика ---
                 src_path = os.path.join(CHARTS_FOLDER, filename)
-                # Если локально нет файла, пытаемся стянуть из S3 перед упаковкой
                 if not os.path.exists(src_path):
-                    try:
-                        s3_client.download_file("charts", filename, src_path)
+                    try: s3_client.download_file("charts", filename, src_path)
                     except: pass
                 
                 if os.path.exists(src_path):
                     zf.write(src_path, arcname=f"source/{filename}")
                 
-                # --- Файлы данных ---
                 for df_name in linked_data:
                     d_path = os.path.join(DATA_FOLDER, df_name)
                     if not os.path.exists(d_path):
-                        try:
-                            s3_client.download_file("data-sources", df_name, d_path)
+                        try: s3_client.download_file("data-sources", df_name, d_path)
                         except: pass
 
                     if os.path.exists(d_path):
                         zf.write(d_path, arcname=f"data/{df_name}")
             
-            buffer.seek(0)
-            return buffer
+            # Сохраняем готовый архив в S3 (в корзину charts)
+            s3_client.upload_file(export_path, "charts", export_filename)
+            
+            return export_filename
         finally:
             db.close()
 

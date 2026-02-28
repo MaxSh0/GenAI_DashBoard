@@ -520,14 +520,52 @@ if st.session_state["authentication_status"]:
             with c_exp:
                 with st.popover("📦"):
                     t_html, t_geb = st.tabs(["HTML", "GEB"])
+                    
                     with t_html: 
                         html_placeholder = st.empty()
                         html_placeholder.info("Отрисовка...")
+                        
                     with t_geb:
-                        try:
-                            geb_data = BundleManager.export_chart(fname).getvalue()
-                            st.download_button("Скачать .geb", data=geb_data, file_name=f"{fname[:-3]}.geb", mime="application/zip", type="primary", key=f"geb_{chart_db.id}", use_container_width=True)
-                        except Exception as e: st.error(e)
+                        # Проверяем статус фоновой задачи экспорта
+                        export_task_desc = f"Экспорт '{chart_db.display_name}'|{chart_db.id}"
+                        is_exporting = any(export_task_desc == str(v) for v in st.session_state.get("active_tasks", {}).values())
+                        
+                        export_ready_key = f"export_ready_{chart_db.id}"
+                        
+                        if is_exporting:
+                            st.status("📦 Упаковка .geb архива...", state="running")
+                        
+                        elif export_ready_key in st.session_state:
+                            st.success("✅ Архив готов!")
+                            export_filename = st.session_state[export_ready_key]
+                            local_export_path = os.path.join(DATA_FOLDER, export_filename)
+                            
+                            # Скачиваем готовый архив из S3
+                            if not os.path.exists(local_export_path):
+                                try: s3_client.download_file("charts", export_filename, local_export_path)
+                                except: pass
+                                
+                            if os.path.exists(local_export_path):
+                                # Отдаем пользователю через потоковое чтение (безопасно для RAM)
+                                with open(local_export_path, "rb") as f:
+                                    st.download_button(
+                                        label="⬇️ Скачать .geb", 
+                                        data=f, 
+                                        file_name=f"{fname[:-3]}.geb", 
+                                        mime="application/zip", 
+                                        type="primary", 
+                                        key=f"dl_geb_{chart_db.id}", 
+                                        use_container_width=True
+                                    )
+                            else:
+                                st.error("Файл не найден")
+                        else:
+                            st.info("Сгенерировать пакет для экспорта")
+                            if st.button("🚀 Начать сборку", key=f"gen_geb_{chart_db.id}", use_container_width=True):
+                                from modules.tasks import export_bundle_task
+                                task = export_bundle_task.delay(filename=fname, chart_id=chart_db.id)
+                                st.session_state.active_tasks[task.id] = export_task_desc
+                                st.rerun()
 
             with c_del:
                 with st.popover("🗑️"):
@@ -682,11 +720,13 @@ if st.session_state["authentication_status"]:
                             elif "Редактирование" in c_desc:
                                 st.session_state[f"ver_{c_id}"] = st.session_state.get(f"ver_{c_id}", 0) + 1
                                 st.toast(f"✅ График обновлен!")
-                            # 🚨 НОВОЕ: Обрабатываем ответ чата 🚨
                             elif "Чат с ИИ" in c_desc:
                                 if "msgs" not in st.session_state: st.session_state.msgs = []
                                 st.session_state.msgs.append({"role": "assistant", "content": r_data.get("msg")})
-                                # Тост не выводим, чат обновится сам
+                            elif "Экспорт" in c_desc:
+                                target_id = str(c_id).strip() if c_id else str(r_data.get("chart_id")).strip()
+                                st.session_state[f"export_ready_{target_id}"] = r_data.get("export_key")
+                                st.toast(f"📦 Архив готов к скачиванию!")
                             else:
                                 st.toast(f"✅ {c_desc} завершено!")
                         else:

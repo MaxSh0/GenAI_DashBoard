@@ -232,3 +232,15 @@ def chat_llm_task(self, sel_prov, sel_model, history_context, user_prompt, user_
             
     except Exception as e:
         return {"status": False, "msg": str(e)}
+
+
+@celery_app.task(name="export_bundle_task", bind=True)
+def export_bundle_task(self, filename, chart_id):
+    """Фоновая задача для сборки тяжелого .geb архива"""
+    from modules.io_manager import BundleManager
+    try:
+        # Вызываем новый метод, который сохранит всё физически и вернет имя файла
+        export_key = BundleManager.export_chart_to_s3(filename)
+        return {"status": True, "export_key": export_key, "chart_id": chart_id}
+    except Exception as e:
+        return {"status": False, "msg": f"Ошибка экспорта: {str(e)}", "chart_id": chart_id}
