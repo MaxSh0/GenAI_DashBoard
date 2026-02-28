@@ -498,16 +498,35 @@ if st.session_state["authentication_status"]:
                 orig_funcs = {name: getattr(st, name) for name in WIDGETS if hasattr(st, name)}
                 orig_sidebar = st.sidebar 
 
+                # 🚨 1. НЕУБИВАЕМЫЙ ПРОКСИ ДЛЯ САЙДБАРА 🚨
+                main_dg = st.container() # Настоящий контейнер для приема элементов
                 class SidebarProxy:
-                    def __getattr__(self, name): return getattr(st, name)
+                    def __getattr__(self, name):
+                        # Если это функция типа selectbox - берем нашу пропатченную
+                        if hasattr(st, name): return getattr(st, name)
+                        # Иначе (например, Streamlit просит .id) - отдаем от контейнера!
+                        return getattr(main_dg, name)
+                    # Поддержка конструкции "with st.sidebar:"
+                    def __enter__(self): return main_dg.__enter__()
+                    def __exit__(self, t, v, tb): return main_dg.__exit__(t, v, tb)
 
+                # 🚨 2. УМНЫЙ АВТО-ГЕНЕРАТОР КЛЮЧЕЙ 🚨
                 u_suffix = f"chart_inst_{chart_db.id}"
                 def create_patch(func, sfx):
                     def patched(*args, **kwargs):
-                        kwargs["key"] = f"{kwargs.get('key', 'auto_' + str(kwargs.get('label', 'w'))[:10])}_{sfx}"
+                        base_key = kwargs.get('key')
+                        if base_key is None:
+                            # Пытаемся вытащить имя виджета для уникальности
+                            label = kwargs.get('label')
+                            if label is None and len(args) > 0: label = str(args[0])
+                            if label is None: label = str(random.randint(10000, 99999))
+                            base_key = f"auto_{str(label)[:15]}"
+                        # Бронируем ключ ID графика
+                        kwargs["key"] = f"{base_key}_{sfx}"
                         return func(*args, **kwargs)
                     return patched
 
+                # Применяем защиту
                 for n, f in orig_funcs.items(): setattr(st, n, create_patch(f, u_suffix))
                 st.sidebar = SidebarProxy() 
 

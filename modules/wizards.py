@@ -53,7 +53,7 @@ def wizard_create_chart():
     # 1. Настройки файла
     st.write("### 1. Настройка файла")
     display_title = st.text_input("Название графика (видит пользователь)", placeholder="Динамика Выручки 2024")
-    filename_base = st.text_input("Техническое ID файла (латиница)", placeholder="revenue_2024")
+    # 🚨 ПОЛЕ ТЕХНИЧЕСКОГО ID УДАЛЕНО, ГЕНЕРИРУЕМ АВТОМАТИЧЕСКИ 🚨
     
     # --- ВЫБОР ДАННЫХ (ВКЛАДКИ) ---
     st.write("### Источник данных")
@@ -99,38 +99,15 @@ def wizard_create_chart():
             # 1. Если тем нет, создаем дефолтные
             if not user_themes:
                 defaults = [
-                    {"name":"Лес (Nature)",
-                        "colors": ["#2D6A4F", "#52B788", "#D8F3DC"],
-                        "dark": True
-                    },
-                    {"name":"Океан (Blue)",
-                        "colors": ["#0077B6", "#00B4D8", "#90E0EF"],
-                        "dark": True
-                    },
-                    {"name":"Закат (Vibes)",
-                        "colors": ["#7209B7", "#F72585", "#FFCC00"],
-                        "dark": True
-                    },
-                    {"name":"ВсеИнструменты",
-                        "colors": ["#EE1C25", "#231F20", "#eae7e7"],
-                        "dark": True
-                    },
-                    {"name":"VK",
-                        "colors": ["#0035ff", "#000000", "#99A2AD"],
-                        "dark": True
-                    },
-                    {"name":"Сбер",
-                        "colors": ["#21A038", "#1A1A1A", "#85C441"],
-                        "dark": True
-                    },
-                    {"name":"Яндекс",
-                        "colors": ["#FC3F1D", "#FFCC00", "#000000"],
-                        "dark": True
-                    },
-                    {"name":"Т-Банк",
-                        "colors": ["#FFDD2D", "#FFFFFF", "#000000"],
-                        "dark": True
-                    }]
+                    {"name":"Лес (Nature)", "colors": ["#2D6A4F", "#52B788", "#D8F3DC"], "dark": True},
+                    {"name":"Океан (Blue)", "colors": ["#0077B6", "#00B4D8", "#90E0EF"], "dark": True},
+                    {"name":"Закат (Vibes)", "colors": ["#7209B7", "#F72585", "#FFCC00"], "dark": True},
+                    {"name":"ВсеИнструменты", "colors": ["#EE1C25", "#231F20", "#eae7e7"], "dark": True},
+                    {"name":"VK", "colors": ["#0035ff", "#000000", "#99A2AD"], "dark": True},
+                    {"name":"Сбер", "colors": ["#21A038", "#1A1A1A", "#85C441"], "dark": True},
+                    {"name":"Яндекс", "colors": ["#FC3F1D", "#FFCC00", "#000000"], "dark": True},
+                    {"name":"Т-Банк", "colors": ["#FFDD2D", "#FFFFFF", "#000000"], "dark": True}
+                ]
                 for d in defaults:
                     c_str = ",".join(d['colors']) if isinstance(d['colors'], list) else str(d['colors'])
                     
@@ -265,8 +242,9 @@ def wizard_create_chart():
     btn_manual = c_manual.button("📋 Только промпт")
 
     if btn_auto or btn_manual:
-        if not (display_title and filename_base and goal) or (not up_file and not selected_db_sources):
-            st.error("Заполните основные поля (Название, ID, Цель) и выберите/загрузите данные!")
+        # Убрана проверка filename_base
+        if not (display_title and goal) or (not up_file and not selected_db_sources):
+            st.error("Заполните основные поля (Название, Цель) и выберите/загрузите данные!")
             return
 
         current_colors = st.session_state.get("wiz_active_colors", ["#000", "#000", "#000"])
@@ -286,9 +264,20 @@ def wizard_create_chart():
                 try: s3_client.download_file("data-sources", target_filename, path)
                 except: pass
 
-        # 2. ИМЯ ГРАФИКА
-        py_name = f"{current_user}_{sanitize_filename(filename_base)}"
-        if not py_name.endswith('.py'): py_name += '.py'
+        # --- 2. УМНАЯ АВТОГЕНЕРАЦИЯ ИМЕНИ ФАЙЛА (py_name) ---
+        import uuid
+        db_check = SessionLocal()
+        try:
+            while True:
+                # Генерируем chart_ + 8 случайных символов
+                unique_hash = uuid.uuid4().hex[:8]
+                py_name = f"chart_{unique_hash}.py"
+                # Проверяем на дубликаты
+                if not db_check.query(Chart).filter(Chart.technical_name == py_name).first():
+                    break
+        finally:
+            db_check.close()
+        # ---------------------------------------------------
 
         # 3. АНАЛИЗ КОЛОНОК
         try:
@@ -473,7 +462,6 @@ def wizard_create_chart():
                 time.sleep(0.5) # Даем полсекунды, чтобы пользователь успел увидеть сообщение
                 
                 st.rerun() # Мгновенно закрываем визард!
-
 # --- WIZARD: MANAGE SOURCES ---
 @st.dialog("⚙️ Пайплайн данных", width="large")
 def wizard_manage_sources():
