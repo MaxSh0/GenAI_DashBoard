@@ -4,17 +4,16 @@ import time
 import importlib.util
 from modules.settings import DATA_FOLDER, HANDLERS_FOLDER
 from modules.connector_loader import load_connectors
-
-# --- НОВОЕ: Импортируем S3 клиент ---
 from modules.s3_storage import s3_client
 
 def sync_single_source(source_config):
     """
-    Выполняет загрузку данных для одного источника.
+    Выполняет загрузку данных для одного источника и применяет ETL.
     """
     try:
-        # 1. Определяем коннектор
+        # 1. Определяем коннектор и имя файла
         connector_id = source_config.get("connector_id")
+        filename = source_config.get("filename")
         
         # Обратная совместимость
         if not connector_id:
@@ -25,24 +24,42 @@ def sync_single_source(source_config):
             else:
                 connector_id = "base"
 
-        # 2. Загружаем класс коннектора
-        available_connectors = load_connectors()
-        
-        if connector_id not in available_connectors:
-            return False, f"Коннектор '{connector_id}' не найден. Проверьте plugins.", None
+        # 2 & 3. Загружаем данные (Extract)
+        if connector_id == "base":
+            # --- ЛОГИКА ДЛЯ ЛОКАЛЬНЫХ ФАЙЛОВ ---
+            if not filename:
+                return False, "Для типа 'base' не указано имя файла (filename).", None
+                
+            file_path = os.path.join(DATA_FOLDER, filename)
             
-        ConnectorClass = available_connectors[connector_id]
-        connector = ConnectorClass()
-        
-        # 3. Загружаем данные (Extract)
-        config_data = source_config.get("config", {})
-        
-        is_valid, err_msg = connector.validate(config_data)
-        if not is_valid:
-            return False, f"Ошибка конфигурации: {err_msg}", None
+            # Если файла нет локально, пробуем стянуть из S3
+            if not os.path.exists(file_path):
+                try:
+                    s3_client.download_file("data-sources", filename, file_path)
+                except Exception as e:
+                    return False, f"Локальный файл не найден и ошибка скачивания из S3: {e}", None
+                    
+            # Читаем данные
+            if filename.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            else:
+                df = pd.read_excel(file_path)
+                
+        else:
+            # --- ЛОГИКА ДЛЯ ВНЕШНИХ КОННЕКТОРОВ (Google Sheets, YTsaurus) ---
+            available_connectors = load_connectors()
+            if connector_id not in available_connectors:
+                return False, f"Коннектор '{connector_id}' не найден. Проверьте plugins.", None
+                
+            ConnectorClass = available_connectors[connector_id]
+            connector = ConnectorClass()
+            
+            config_data = source_config.get("config", {})
+            is_valid, err_msg = connector.validate(config_data)
+            if not is_valid:
+                return False, f"Ошибка конфигурации: {err_msg}", None
 
-        # Вызов плагина
-        df = connector.load_data(config_data)
+            df = connector.load_data(config_data)
 
         if df is None or df.empty:
             return False, "Источник вернул пустой DataFrame", None
@@ -52,7 +69,7 @@ def sync_single_source(source_config):
         if handler_name and handler_name != "None":
             h_path = os.path.join(HANDLERS_FOLDER, handler_name)
             
-            # --- НОВОЕ: Если скрипта нет локально, скачиваем из S3 ---
+            # Если скрипта нет локально, скачиваем из S3
             if not os.path.exists(h_path):
                 try:
                     s3_client.download_file("handlers", handler_name, h_path)
@@ -66,6 +83,7 @@ def sync_single_source(source_config):
                     spec.loader.exec_module(mod)
                     
                     if hasattr(mod, "handle"):
+                        # Запускаем трансформацию!
                         df = mod.handle(df)
                     else:
                         return False, f"В скрипте {handler_name} нет функции handle(df)", None
@@ -75,7 +93,6 @@ def sync_single_source(source_config):
                 return False, f"Скрипт {handler_name} не найден", None
 
         # 5. Сохраняем результат (Load)
-        filename = source_config.get("filename")
         if not filename:
             filename = f"source_{int(time.time())}.csv"
             
@@ -86,11 +103,11 @@ def sync_single_source(source_config):
         else:
             df.to_csv(save_path, index=False)
             
-        # --- НОВОЕ: ОТПРАВЛЯЕМ ФАЙЛ В S3 ---
+        # ОТПРАВЛЯЕМ ФАЙЛ В S3
         try:
             s3_client.upload_file(save_path, "data-sources", filename)
         except Exception as e:
-            return False, f"Данные скачаны, но ошибка загрузки в S3: {e}", None
+            return False, f"Данные обработаны, но ошибка загрузки в S3: {e}", None
             
         return True, "OK", df
 

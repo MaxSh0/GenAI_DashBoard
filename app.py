@@ -224,10 +224,10 @@ if st.session_state["authentication_status"]:
                 disp_name = (src.filename[:16] + '..') if len(src.filename) > 18 else src.filename
                 handler_info = f" &nbsp;<span style='color: #888888; font-size: 0.85em; white-space: nowrap;'>🛠️ {src.handler.name}</span>" if src.handler else ""
                 r_c1.markdown(f"{c_icon} `{disp_name}`{handler_info}", help=f"Файл: {src.filename}", unsafe_allow_html=True)
-                
-                if src.connector_id != "base":
+                # Показывать кнопку если это удаленный источник ИЛИ если есть ETL-скрипт
+                if src.connector_id != "base" or src.handler_id:
                     # Проверяем, есть ли имя этого файла в списке активных задач
-                    is_running = any(src.filename in desc for desc in st.session_state.active_tasks.values())
+                    is_running = any(src.filename in desc for desc in st.session_state.get("active_tasks", {}).values())
                     
                     if is_running:
                         # Если задача идет, прячем кнопку и показываем статус
@@ -235,19 +235,24 @@ if st.session_state["authentication_status"]:
                     else:
                         if r_c2.button("↻", key=f"upd_src_{src.id}"):
                             creds = st.session_state.get("google_creds")
+                            # Отправляем в Celery!
                             task = update_source_task.delay(src.id, creds)
-                            st.session_state.active_tasks[task.id] = src.filename
+                            if "active_tasks" not in st.session_state: st.session_state.active_tasks = {}
+                            st.session_state.active_tasks[task.id] = f"Обновление '{src.filename}'"
                             st.rerun()
 
         c_all, c_manage = st.columns([0.7, 0.3])
         if c_all.button("🚀 Обновить ВСЕ", type="primary", use_container_width=True):
             creds = st.session_state.get("google_creds")
             for src in active_sources_db:
-                if src.connector_id == "base": 
+                # Пропускаем только файлы без обработчиков
+                if src.connector_id == "base" and not src.handler_id: 
                     continue 
+                
                 # 🚀 Асинхронный вызов Celery
                 task = update_source_task.delay(src.id, creds)
-                st.session_state.active_tasks[task.id] = src.filename
+                if "active_tasks" not in st.session_state: st.session_state.active_tasks = {}
+                st.session_state.active_tasks[task.id] = f"Обновление '{src.filename}'"
             st.rerun()
 
         if c_manage.button("⚙️", help="Настройки", use_container_width=True): wizard_manage_sources()
