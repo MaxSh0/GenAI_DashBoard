@@ -425,7 +425,7 @@ if st.session_state["authentication_status"]:
                                 st.session_state.active_tasks[task.id] = edit_task_desc
                                 st.rerun()
 
-            # --- 2. НОВАЯ КНОПКА АНАЛИЗА ---
+            # --- 2. КНОПКА АНАЛИЗА ---
             with c_chat:
                 with st.popover("💬"):
                     analyze_task_desc = f"Анализ данных '{chart_db.display_name}'|{chart_db.id}"
@@ -436,9 +436,16 @@ if st.session_state["authentication_status"]:
                     else:
                         if not providers: st.error("Нет AI")
                         else:
-                            # Уникальные ключи для селекторов анализа
+                            # 🚨 НОВОЕ: Поле для пожеланий пользователя
+                            user_instructions = st.text_area(
+                                "На чем сфокусироваться?", 
+                                placeholder="Например: Сравни продажи за весну, найди причину падения...",
+                                key=f"prompt_ins_{chart_db.id}"
+                            )
+                            
                             p_chat = st.selectbox("AI", list(providers.keys()), key=f"pc_{chart_db.id}", label_visibility="collapsed")
                             m_chat = st.selectbox("Mod", providers[p_chat]["models"], key=f"mc_{chart_db.id}", label_visibility="collapsed")
+                            
                             if st.button("🚀 Анализ", key=f"b_an_{chart_db.id}", type="primary"):
                                 data_sample = "Нет данных"
                                 if chart_db.data_sources:
@@ -449,10 +456,24 @@ if st.session_state["authentication_status"]:
                                     except: pass
                                 
                                 with open(fpath, "r", encoding="utf-8") as f: chart_code = f.read()
+                                
+                                # 🚨 НОВОЕ: Достаем снапшот графика из сессии
+                                current_snapshot = st.session_state.get(f"fig_snapshot_{chart_db.id}", "Данные снапшота отсутствуют")
+
                                 from modules.tasks import analyze_chart_task
-                                task = analyze_chart_task.delay(chart_id=chart_db.id, code=chart_code, data_sample_str=data_sample, user_id=user_obj.id, sel_prov=p_chat, sel_model=m_chat)
+                                # Передаем новые параметры в задачу (их надо будет добавить в tasks.py)
+                                task = analyze_chart_task.delay(
+                                    chart_id=chart_db.id, 
+                                    code=chart_code, 
+                                    data_sample_str=data_sample, 
+                                    user_id=user_obj.id, 
+                                    sel_prov=p_chat, 
+                                    sel_model=m_chat,
+                                    user_prompt=user_instructions, # Передаем пожелания
+                                    fig_snapshot=current_snapshot  # Передаем снапшот
+                                )
                                 st.session_state.active_tasks[task.id] = analyze_task_desc
-                                st.rerun()
+                               
 
             with c_exp:
                 with st.popover("📦"):
@@ -537,6 +558,22 @@ if st.session_state["authentication_status"]:
                     fig = mod.render(**c_args)
                     
                     if fig:
+                        # 🚨 НОВОЕ: Делаем "Снапшот" текущих данных на графике
+                        try:
+                            snapshot = []
+                            for trace in fig.data:
+                                snapshot.append({
+                                    "name": getattr(trace, "name", "Линия"),
+                                    "type": getattr(trace, "type", "unknown"),
+                                    "x": list(getattr(trace, "x", []))[:200], # Берем до 200 точек
+                                    "y": list(getattr(trace, "y", []))[:200]
+                                })
+                            # Сохраняем в сессию, чтобы кнопка анализа (которая выше в коде) могла это взять
+                            st.session_state[f"fig_snapshot_{chart_db.id}"] = str(snapshot)
+                        except Exception as snap_e:
+                            st.session_state[f"fig_snapshot_{chart_db.id}"] = "Сложный график, снапшот не снят."
+
+                        # Обычный экспорт HTML
                         from modules.utils import ChartExporter
                         html_data = ChartExporter.export_to_html(fig, app_theme_is_dark=is_dark)
                         html_placeholder.download_button("⬇️ HTML", data=html_data, file_name=f"{fname[:-3]}.html", mime="text/html", key=f"dl_h_{chart_db.id}", use_container_width=True)
@@ -574,7 +611,6 @@ if st.session_state["authentication_status"]:
                     with col_cls:
                         if st.button("❌ Убрать", key=f"cls_ins_{chart_db.id}", use_container_width=True):
                             del st.session_state[ins_key]
-                            st.rerun()
 
         # --- ГЛАВНЫЙ ТРЕКЕР ФОНОВЫХ ЗАДАЧ ---
         @st.fragment(run_every=2)
