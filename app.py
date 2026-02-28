@@ -181,21 +181,35 @@ if st.session_state["authentication_status"]:
             with st.popover("📤", help="Загрузить локальный CSV/Excel файл"):
                 man_file = st.file_uploader("Загрузка файла", type=["csv", "xlsx"], label_visibility="collapsed")
                 if man_file:
-                    if st.button("💾 Сохранить", type="primary", use_container_width=True):
-                        # 1. Сохраняем физически (локальный кэш + облако S3)
-                        path = os.path.join(DATA_FOLDER, man_file.name)
-                        with open(path, "wb") as f: 
-                            f.write(man_file.getbuffer())
-                        s3_client.upload_file(path, "data-sources", man_file.name)
-                        
-                        # 2. Регистрируем в БД как "base" (локальный файл)
-                        exist_ds = db.query(DataSource).filter(DataSource.filename == man_file.name, DataSource.workspace_id == st.session_state.active_ws_id).first()
-                        if not exist_ds:
-                            new_ds = DataSource(workspace_id=st.session_state.active_ws_id, connector_id="base", filename=man_file.name, active=True)
-                            db.add(new_ds)
-                        
-                        db.commit()
-                        st.rerun()
+                    # Проверяем, не идет ли уже загрузка этого файла
+                    upload_task_desc = f"Загрузка файла '{man_file.name}'"
+                    is_uploading = any(upload_task_desc == str(v) for v in st.session_state.get("active_tasks", {}).values())
+                    
+                    if is_uploading:
+                        st.button("⏳ Загружается...", disabled=True, use_container_width=True)
+                    else:
+                        if st.button("🚀 Загрузить на сервер", type="primary", use_container_width=True):
+                            # 1. Мгновенно сохраняем физически (локальный кэш)
+                            path = os.path.join(DATA_FOLDER, man_file.name)
+                            with open(path, "wb") as f: 
+                                f.write(man_file.getbuffer())
+                            
+                            # 2. Отправляем в Celery
+                            from modules.tasks import upload_local_file_task
+                            task = upload_local_file_task.delay(
+                                temp_path=path, 
+                                filename=man_file.name, 
+                                workspace_id=st.session_state.active_ws_id
+                            )
+                            
+                            # 3. Добавляем в трекер
+                            if "active_tasks" not in st.session_state:
+                                st.session_state.active_tasks = {}
+                            st.session_state.active_tasks[task.id] = upload_task_desc
+                            
+                            st.toast("📤 Файл отправлен на сервер!")
+                            time.sleep(0.5)
+                            st.rerun()
         
 
         

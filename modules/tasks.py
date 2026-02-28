@@ -11,6 +11,7 @@ from modules.s3_storage import s3_client
 from modules.settings import CHARTS_FOLDER
 from modules.models import Page, Chart, DataSource
 from modules.io_manager import BundleManager
+from modules.s3_storage import s3_client
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
@@ -244,3 +245,37 @@ def export_bundle_task(self, filename, chart_id):
         return {"status": True, "export_key": export_key, "chart_id": chart_id}
     except Exception as e:
         return {"status": False, "msg": f"Ошибка экспорта: {str(e)}", "chart_id": chart_id}
+
+
+
+
+@celery_app.task(name="upload_local_file_task", bind=True)
+def upload_local_file_task(self, temp_path, filename, workspace_id):
+    """Фоновая задача для загрузки тяжелых файлов в S3 и БД"""
+    try:
+        # 1. Отправляем в S3 (самая долгая операция)
+        s3_client.upload_file(temp_path, "data-sources", filename)
+        
+        # 2. Регистрируем в базе данных
+        db = SessionLocal()
+        try:
+            exist_ds = db.query(DataSource).filter(
+                DataSource.filename == filename, 
+                DataSource.workspace_id == workspace_id
+            ).first()
+            
+            if not exist_ds:
+                new_ds = DataSource(
+                    workspace_id=workspace_id, 
+                    connector_id="base", 
+                    filename=filename, 
+                    active=True
+                )
+                db.add(new_ds)
+                db.commit()
+        finally:
+            db.close()
+            
+        return {"status": True, "msg": "Загрузка завершена"}
+    except Exception as e:
+        return {"status": False, "msg": f"Ошибка загрузки: {str(e)}"}
