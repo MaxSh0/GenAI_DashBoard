@@ -1,32 +1,60 @@
 import pandas as pd
 
+
 class BaseConnector:
+    """Abstract base class for all data source connectors.
+
+    Subclasses must implement ``load_data`` and may override
+    ``get_meta``, ``get_fields``, and ``validate``.
     """
-    Базовый класс для всех источников данных.
-    """
+
     @staticmethod
     def get_meta():
-        """Возвращает метаданные коннектора."""
+        """Return connector metadata.
+
+        Returns:
+            dict: A dictionary with keys ``id`` (str), ``name`` (str),
+                and ``icon`` (str).
+        """
         return {
             "id": "base",
             "name": "Base Connector",
-            "icon": "🔌"
+            "icon": "🔌",
         }
 
     @staticmethod
     def get_fields():
-        """
-        Возвращает список полей, которые нужно заполнить пользователю.
-        Пример: [{"key": "token", "label": "API Token", "type": "password"}]
+        """Return the list of user-facing configuration fields.
+
+        Each field is a dict with keys such as ``key``, ``label``,
+        ``type``, ``placeholder``, and ``default``.
+
+        Returns:
+            list[dict]: Configuration fields for the connector.
         """
         return []
 
     def validate(self, config):
-        """Проверяет подключение (по желанию)."""
+        """Optionally validate the connector configuration.
+
+        Args:
+            config (dict): Connector configuration dictionary.
+
+        Returns:
+            tuple[bool, str]: A tuple of (is_valid, message).
+        """
         return True, "OK"
 
     def load_data(self, config) -> pd.DataFrame:
+        """Load data from the source and return it as a DataFrame.
+
+        Args:
+            config (dict): Connector configuration dictionary.
+
+        Returns:
+            pd.DataFrame: The loaded data.
+
+        Raises:
+            NotImplementedError: Always; subclasses must override.
         """
-        Основной метод загрузки. Должен вернуть Pandas DataFrame.
-        """
-        raise NotImplementedError("Метод load_data должен быть реализован")
+        raise NotImplementedError("Method load_data must be implemented")

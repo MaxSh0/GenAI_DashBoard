@@ -1,55 +1,63 @@
-import os
-from celery import Celery
+"""Celery background tasks for chart generation, editing, analysis, imports, exports, etc."""
+
 import base64
 import io
+import os
 
-from modules.db_manager import SessionLocal
-from modules.models import DataSource
+from celery import Celery
+
 from modules.data_loader import sync_single_source
+from modules.db_manager import SessionLocal
+from modules.io_manager import BundleManager
 from modules.llm_manager import ask_llm
+from modules.models import Chart, DataSource, Page
 from modules.s3_storage import s3_client
 from modules.settings import CHARTS_FOLDER
-from modules.models import Page, Chart, DataSource
-from modules.io_manager import BundleManager
-from modules.s3_storage import s3_client
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
 
-# Инициализируем Celery
 celery_app = Celery('genai_dashboard', broker=REDIS_URL)
 celery_app.conf.result_backend = REDIS_URL
 
+
 @celery_app.task(name="update_source_task", bind=True)
 def update_source_task(self, source_id: int, injected_creds: dict = None):
-    """Фоновая задача для обновления одного источника данных"""
+    """Update a single data source in the background.
+
+    Args:
+        source_id: ID of the DataSource record to update.
+        injected_creds: Optional dictionary of credentials to inject
+            into the sync configuration (e.g. Google service account keys).
+
+    Returns:
+        dict with keys ``status`` (bool), ``msg`` (str), and ``filename`` (str).
+    """
     db = SessionLocal()
     try:
-        # 1. Достаем источник из БД по его ID
         src = db.query(DataSource).get(source_id)
         if not src:
-            return {"status": False, "msg": f"Источник {source_id} не найден", "filename": "Unknown"}
+            return {
+                "status": False,
+                "msg": f"Источник {source_id} не найден",
+                "filename": "Unknown",
+            }
 
-        # 2. Собираем конфиг, как того ожидает функция sync_single_source
-        # Достаем техническое имя файла скрипта (например, ws_1_script.py), если обработчик привязан
         handler_file = src.handler.technical_name if src.handler else None
-        
+
         task_dict = {
             "connector_id": src.connector_id,
             "filename": src.filename,
             "config": src.config_json or {},
-            "handler": handler_file
+            "handler": handler_file,
         }
-        
-        # Пробрасываем креды от Google (если они есть)
+
         if injected_creds:
             task_dict["config"]["_injected_creds"] = injected_creds
 
-        # 3. Запускаем тяжелый процесс!
         ok, msg, _ = sync_single_source(task_dict)
-        
-        # Возвращаем результат в Streamlit
+
         return {"status": ok, "msg": msg, "filename": src.filename}
-        
+
     except Exception as e:
         return {"status": False, "msg": str(e), "filename": "Unknown"}
     finally:
@@ -57,62 +65,110 @@ def update_source_task(self, source_id: int, injected_creds: dict = None):
 
 
 def clean_gemini_code(text):
-    """Очищает ответ AI от маркдаун-тегов"""
+    """Strip Markdown code fences from an LLM response.
+
+    Extracts the Python code block from a response that may be wrapped
+    in ```python ... ``` or ``` ... ``` fences.
+
+    Args:
+        text: Raw text returned by the LLM.
+
+    Returns:
+        The extracted code string with leading/trailing whitespace removed.
+    """
     if "```python" in text:
         text = text.split("```python")[1]
-        if "```" in text: text = text.split("```")[0]
+        if "```" in text:
+            text = text.split("```")[0]
     elif "```" in text:
         text = text.split("```")[1]
-        if "```" in text: text = text.split("```")[0]
+        if "```" in text:
+            text = text.split("```")[0]
     return text.strip()
 
+
 @celery_app.task(name="generate_chart_task", bind=True)
-def generate_chart_task(self, prompt, py_name, display_title, sel_prov, sel_model, active_ws_id, current_page_name, ds_ids, user_id):
-    """Фоновая задача для генерации кода графика через AI"""
+def generate_chart_task(
+    self,
+    prompt,
+    py_name,
+    display_title,
+    sel_prov,
+    sel_model,
+    active_ws_id,
+    current_page_name,
+    ds_ids,
+    user_id,
+):
+    """Generate chart Python code via an LLM, persist it, and register in the DB.
+
+    Args:
+        prompt: Natural-language instruction for the chart.
+        py_name: Technical filename (e.g. ``chart_01.py``) for the generated module.
+        display_title: Human-readable chart title.
+        sel_prov: LLM provider key.
+        sel_model: LLM model name.
+        active_ws_id: Workspace ID to associate the chart with.
+        current_page_name: Page name to attach the chart to.
+        ds_ids: List of DataSource IDs to link to the chart.
+        user_id: Identifier of the user making the request.
+
+    Returns:
+        dict with ``status`` (bool) and ``msg`` (str).
+    """
     db = SessionLocal()
     try:
         system_msg = (
             "Ты Senior Python Developer. Верни ТОЛЬКО валидный Python код всего модуля. Без маркдауна.\n"
-            "🚨 КРИТИЧЕСКОЕ ПРАВИЛО: НИКОГДА не используй st.sidebar. Все виджеты (selectbox, slider) пиши внутри функции render.\n"
+            "🚨 КРИТИЧЕСКОЕ ПРАВИЛО: НИКОГДА не используй st.sidebar. "
+            "Все виджеты (selectbox, slider) пиши внутри функции render.\n"
             "ВАЖНО ПО PLOTLY 5.X:\n"
             "1. НИКОГДА не используй устаревшие параметры: 'titlefont', 'tickfont'.\n"
-            "2. Правильный синтаксис шрифтов: dict(title=dict(text='Name', font=dict(size=14))).\n"
-            "3. Вместо 'margin' в layout используй update_layout(margin=dict(l=..., r=...))."
+            "2. Правильный синтаксис шрифтов: "
+            "dict(title=dict(text='Name', font=dict(size=14))).\n"
+            "3. Вместо 'margin' в layout используй "
+            "update_layout(margin=dict(l=..., r=...))."
         )
-        # 1. Запрашиваем код у нейросети
         success, result_text = ask_llm(sel_prov, sel_model, system_msg, prompt, user_id=user_id)
-        
+
         if not success:
             return {"status": False, "msg": f"Сбой API: {result_text}"}
-            
-        # 2. Сохраняем код в файл и S3
+
         code_text = clean_gemini_code(result_text)
         safe_prompt = prompt.replace('"""', "'''")
-        file_content = f'"""\n--- GENERATED BY {sel_prov} ({sel_model}) ---\nPROMPT:\n{safe_prompt}\n"""\n\n{code_text}'
-        
+        file_content = (
+            f'"""\n--- GENERATED BY {sel_prov} ({sel_model}) ---\n'
+            f'PROMPT:\n{safe_prompt}\n"""\n\n{code_text}'
+        )
+
         path = os.path.join(CHARTS_FOLDER, py_name)
         with open(path, "w", encoding="utf-8") as f:
             f.write(file_content)
         s3_client.put_text("charts", py_name, file_content)
-        
-        # 3. Регистрируем график в БД
-        new_chart = Chart(workspace_id=active_ws_id, technical_name=py_name, display_name=display_title)
+
+        new_chart = Chart(
+            workspace_id=active_ws_id,
+            technical_name=py_name,
+            display_name=display_title,
+        )
         db.add(new_chart)
-        
-        # Привязываем источники данных
+
         sources = db.query(DataSource).filter(DataSource.id.in_(ds_ids)).all()
         new_chart.data_sources.extend(sources)
-        
-        # Привязываем к текущей странице
-        page = db.query(Page).filter(Page.workspace_id == active_ws_id, Page.name == current_page_name).first()
+
+        page = (
+            db.query(Page)
+            .filter(Page.workspace_id == active_ws_id, Page.name == current_page_name)
+            .first()
+        )
         if not page:
             page = db.query(Page).filter(Page.workspace_id == active_ws_id).first()
         if page:
             page.charts.append(new_chart)
-            
+
         db.commit()
         return {"status": True, "msg": "Готово"}
-        
+
     except Exception as e:
         db.rollback()
         return {"status": False, "msg": str(e)}
@@ -122,32 +178,66 @@ def generate_chart_task(self, prompt, py_name, display_title, sel_prov, sel_mode
 
 @celery_app.task(name="edit_chart_task", bind=True)
 def edit_chart_task(self, prompt, sys_msg, fname, sel_prov, sel_model, user_id):
-    """Фоновая задача для редактирования существующего графика через AI"""
+    """Edit an existing chart's code via an LLM.
+
+    Args:
+        prompt: Natural-language instruction describing the desired change.
+        sys_msg: System message for the LLM (typically the current chart code).
+        fname: Filename of the chart module to overwrite.
+        sel_prov: LLM provider key.
+        sel_model: LLM model name.
+        user_id: Identifier of the user making the request.
+
+    Returns:
+        dict with ``status`` (bool) and ``msg`` (str).
+    """
     try:
-        # 1. Запрашиваем код у нейросети
         success, result_text = ask_llm(sel_prov, sel_model, sys_msg, prompt, user_id=user_id)
-        
+
         if not success:
             return {"status": False, "msg": f"Сбой API: {result_text}"}
-            
-        # 2. Очищаем код (используем уже существующую функцию clean_gemini_code)
+
         n_code = clean_gemini_code(result_text)
-        
-        # 3. Сохраняем измененный код локально и в S3
+
         path = os.path.join(CHARTS_FOLDER, fname)
         with open(path, "w", encoding="utf-8") as f:
             f.write(n_code.strip())
         s3_client.put_text("charts", fname, n_code.strip())
-        
+
         return {"status": True, "msg": "Готово"}
-        
+
     except Exception as e:
         return {"status": False, "msg": str(e)}
 
 
 @celery_app.task(name="analyze_chart_task", bind=True)
-def analyze_chart_task(self, chart_id, code, data_sample_str, user_id, sel_prov, sel_model, user_prompt="", fig_snapshot=""):
-    """Фоновая задача для генерации аналитического комментария к графику"""
+def analyze_chart_task(
+    self,
+    chart_id,
+    code,
+    data_sample_str,
+    user_id,
+    sel_prov,
+    sel_model,
+    user_prompt="",
+    fig_snapshot="",
+):
+    """Generate an analytical commentary for a chart.
+
+    Args:
+        chart_id: ID of the chart being analyzed.
+        code: Python source code of the chart module.
+        data_sample_str: CSV-formatted sample of the underlying raw data.
+        user_id: Identifier of the user making the request.
+        sel_prov: LLM provider key.
+        sel_model: LLM model name.
+        user_prompt: Optional user-provided focus instructions for the analysis.
+        fig_snapshot: Optional snapshot of the currently rendered chart data.
+
+    Returns:
+        dict with ``status`` (bool), ``msg`` (str — the analysis text), and
+        ``chart_id`` (int).
+    """
     try:
         system_msg = (
             "Ты профессиональный бизнес-аналитик и эксперт по данным. "
@@ -156,126 +246,162 @@ def analyze_chart_task(self, chart_id, code, data_sample_str, user_id, sel_prov,
             "Выдай краткий, но глубокий инсайт. Найди тренды, аномалии или дай совет по бизнесу. "
             "Пиши на русском языке, используй Markdown. Будь лаконичен."
         )
-        
-        # Базовая часть промпта
+
         prompt = (
             f"### КОД ГРАФИКА:\n```python\n{code}\n```\n\n"
             f"### ОБРАЗЕЦ СЫРЫХ ДАННЫХ (CSV):\n```csv\n{data_sample_str}\n```\n\n"
         )
-        
-        # 1. Если удалось снять "снапшот" с графика — добавляем его
-        if fig_snapshot and fig_snapshot != "Данные снапшота отсутствуют" and "Сложный график" not in fig_snapshot:
+
+        if (
+            fig_snapshot
+            and fig_snapshot != "Данные снапшота отсутствуют"
+            and "Сложный график" not in fig_snapshot
+        ):
             prompt += (
                 f"### ТЕКУЩИЕ ДАННЫЕ НА ЭКРАНЕ (СНАПШОТ):\n"
                 f"Внимание: это точные значения (X и Y), которые остались после применения фильтров на графике:\n"
                 f"{fig_snapshot}\n\n"
             )
-            
-        # 2. Если пользователь ввел свои пожелания — фокусируем ИИ на них
+
         if user_prompt:
             prompt += (
                 f"### ОСОБЫЕ ПОЖЕЛАНИЯ ОТ ПОЛЬЗОВАТЕЛЯ:\n"
                 f"«{user_prompt}»\n\n"
-                "СТРОГО следуй этим инструкциям при анализе. Сделай акцент на том, о чем просит пользователь."
+                "СТРОГО следуй этим инструкциям при анализе. "
+                "Сделай акцент на том, о чем просит пользователь."
             )
         else:
-            # Дефолтная задача, если пользователь ничего не написал
             prompt += "Проанализируй эти данные и дай 3-4 ключевых инсайта."
 
-        # Отправляем запрос в ИИ
         success, result_text = ask_llm(sel_prov, sel_model, system_msg, prompt, user_id=user_id)
-        
+
         if success:
             return {"status": True, "msg": result_text, "chart_id": chart_id}
         else:
             return {"status": False, "msg": f"Ошибка AI: {result_text}"}
-            
+
     except Exception as e:
         return {"status": False, "msg": str(e)}
-
-
 
 
 @celery_app.task(name="import_bundle_task", bind=True)
 def import_bundle_task(self, b64_data, workspace_id, target_page):
-    """Фоновая задача для импорта .geb архивов"""
+    """Import a .geb bundle from a Base64-encoded payload.
+
+    Args:
+        b64_data: Base64-encoded string of the .geb archive.
+        workspace_id: Target workspace ID for the imported charts.
+        target_page: Page name to attach imported charts to.
+
+    Returns:
+        dict with ``status`` (bool) and ``msg`` (str).
+    """
     try:
-        # Декодируем Base64 обратно в бинарный файл
         file_bytes = base64.b64decode(b64_data)
         file_io = io.BytesIO(file_bytes)
-        
-        # Запускаем нашу исправленную функцию
+
         success, msg = BundleManager.import_bundle(file_io, workspace_id, target_page)
-        
+
         if success:
-            return {"status": True, "msg": f"Импорт завершен"}
+            return {"status": True, "msg": "Импорт завершен"}
         else:
             return {"status": False, "msg": msg}
-            
+
     except Exception as e:
         return {"status": False, "msg": str(e)}
 
 
-
 @celery_app.task(name="chat_llm_task", bind=True)
 def chat_llm_task(self, sel_prov, sel_model, history_context, user_prompt, user_id=None):
-    """Фоновая задача для свободного чата с ИИ"""
+    """Run a free-form chat completion against the LLM.
+
+    Args:
+        sel_prov: LLM provider key.
+        sel_model: LLM model name.
+        history_context: Previous conversation turns as a formatted string.
+        user_prompt: The user's latest message.
+        user_id: Optional identifier of the user making the request.
+
+    Returns:
+        dict with ``status`` (bool) and ``msg`` (str — the assistant's reply).
+    """
     try:
         system_msg = "You are a helpful assistant."
         full_prompt = f"HISTORY:\n{history_context}\nREQUEST:\n{user_prompt}"
-        
+
         success, resp = ask_llm(sel_prov, sel_model, system_msg, full_prompt, user_id=user_id)
-        
+
         if success:
             return {"status": True, "msg": resp}
         else:
             return {"status": False, "msg": f"Ошибка AI: {resp}"}
-            
+
     except Exception as e:
         return {"status": False, "msg": str(e)}
 
 
 @celery_app.task(name="export_bundle_task", bind=True)
 def export_bundle_task(self, filename, chart_id):
-    """Фоновая задача для сборки тяжелого .geb архива"""
-    from modules.io_manager import BundleManager
+    """Export a chart as a .geb bundle to S3.
+
+    Args:
+        filename: Base filename for the export archive.
+        chart_id: ID of the chart to export.
+
+    Returns:
+        dict with ``status`` (bool), ``export_key`` (str — S3 object key), and
+        ``chart_id`` (int).
+    """
     try:
-        # Вызываем новый метод, который сохранит всё физически и вернет имя файла
         export_key = BundleManager.export_chart_to_s3(filename)
         return {"status": True, "export_key": export_key, "chart_id": chart_id}
     except Exception as e:
-        return {"status": False, "msg": f"Ошибка экспорта: {str(e)}", "chart_id": chart_id}
-
-
+        return {
+            "status": False,
+            "msg": f"Ошибка экспорта: {str(e)}",
+            "chart_id": chart_id,
+        }
 
 
 @celery_app.task(name="upload_local_file_task", bind=True)
 def upload_local_file_task(self, temp_path, filename, workspace_id):
-    """Фоновая задача для загрузки тяжелых файлов в S3 и БД"""
+    """Upload a heavy local file to S3 and register it in the database.
+
+    Args:
+        temp_path: Local filesystem path to the temporary file.
+        filename: Target filename in S3 (also used for DB registration).
+        workspace_id: Workspace ID to associate the DataSource with.
+
+    Returns:
+        dict with ``status`` (bool) and ``msg`` (str).
+    """
     try:
-        # 1. Отправляем в S3 (самая долгая операция)
+        # Upload to S3 first — this is the most time-consuming operation.
         s3_client.upload_file(temp_path, "data-sources", filename)
-        
-        # 2. Регистрируем в базе данных
+
         db = SessionLocal()
         try:
-            exist_ds = db.query(DataSource).filter(
-                DataSource.filename == filename, 
-                DataSource.workspace_id == workspace_id
-            ).first()
-            
+            exist_ds = (
+                db.query(DataSource)
+                .filter(
+                    DataSource.filename == filename,
+                    DataSource.workspace_id == workspace_id,
+                )
+                .first()
+            )
+
             if not exist_ds:
                 new_ds = DataSource(
-                    workspace_id=workspace_id, 
-                    connector_id="base", 
-                    filename=filename, 
-                    active=True
+                    workspace_id=workspace_id,
+                    connector_id="base",
+                    filename=filename,
+                    active=True,
                 )
                 db.add(new_ds)
                 db.commit()
         finally:
             db.close()
-            
+
         return {"status": True, "msg": "Загрузка завершена"}
     except Exception as e:
         return {"status": False, "msg": f"Ошибка загрузки: {str(e)}"}
